@@ -5,8 +5,9 @@ setup(
     version='0.1',
     packages=['jangl_utils'],
     include_package_data=True,
+    install_requires=['prettyconf'],
     url='https://github.com/revpoint/jangl-utils',
     author='RevPoint Media LLC',
     author_email='jangl@revpointmedia.com',
-    description="Common utilities shared among Jangl services.",
+    description='Common utilities shared among Jangl services.',
 )

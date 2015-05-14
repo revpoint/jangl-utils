@@ -1,11 +1,13 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='jangl-utils',
     version='0.1',
     packages=['jangl_utils'],
-    include_package_data=True,
-    install_requires=['prettyconf'],
+    install_requires=[
+        'prettyconf',
+        'simpleflake',
+    ],
     url='https://github.com/revpoint/jangl-utils',
     author='RevPoint Media LLC',
     author_email='jangl@revpointmedia.com',

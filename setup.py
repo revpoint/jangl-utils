@@ -8,7 +8,6 @@ setup(
         'prettyconf',
         'simpleflake',
     ],
-    zip_safe=True,
     url='https://github.com/revpoint/jangl-utils',
     author='RevPoint Media LLC',
     author_email='jangl@revpointmedia.com',

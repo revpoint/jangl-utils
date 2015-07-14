@@ -54,7 +54,7 @@ class BackendAPISession(requests.Session):
                 timeout=None, allow_redirects=True, proxies=None, hooks=None, stream=None, verify=None, cert=None,
                 json=None):
         if isinstance(url, (tuple, list)):
-            url = get_service_url(url)
+            url = get_service_url(*url)
         return super(BackendAPISession, self).request(method, url, params, data, headers, cookies, files, auth, timeout,
                                                       allow_redirects, proxies, hooks, stream, verify, cert, json)
 

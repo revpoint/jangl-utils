@@ -39,8 +39,8 @@ class AuthMiddleware(object):
 
     def process_exception(self, request, exception):
         if isinstance(exception, HTTPError):
-            print exception.response.status_code
-            print exception.response.json()
+            # print exception.response.status_code
+            # print exception.response.json()
             if (exception.response.status_code == 401 and
                         exception.response.json()['detail'] == EXPIRED_ERROR):
                 logout(request)

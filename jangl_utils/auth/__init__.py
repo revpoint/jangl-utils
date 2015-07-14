@@ -22,13 +22,12 @@ def get_user(request, token):
     return AnonymousUser()
 
 
-def get_session_key(request):
-    return request.session.get(AUTH_SESSION_KEY)
+def get_token_from_request(request):
+    token = None
 
-
-def get_user_from_request(request):
     # Try to get the auth from the user session first, so someone can't change users if they have a session.
-    token = get_session_key(request)
+    if hasattr(request, 'session'):
+        token = request.session.get(AUTH_SESSION_KEY)
 
     # If there is no session, then accept header authorization
     auth = request.META.get('HTTP_AUTHORIZATION')
@@ -37,6 +36,11 @@ def get_user_from_request(request):
         if split_auth[0] == 'JWT' and len(split_auth) == 2:
             token = split_auth[1]
 
+    return token
+
+
+def get_user_from_request(request):
+    token = get_token_from_request(request)
     return get_user(request, token)
 
 
@@ -181,4 +185,11 @@ def set_current_account_cookie(response, current_account):
 def get_site_from_request(request):
     site_request = request.backend_api.get(('accounts', 'site'))
     site_request.raise_for_status()
-    return site_request.json()['preferences']
+    response = site_request.json()
+    site = response['preferences']
+    site.update({
+        'name': response['name'],
+        'url': response['url'],
+        'timezone': response['timezone'],
+    })
+    return site

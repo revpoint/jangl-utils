@@ -2,7 +2,7 @@ from django.conf import settings as django_settings
 import requests
 from jangl_utils.settings import CID_HEADER_NAME
 from jangl_utils.unique_id import get_unique_id
-from jangl_utils.auth import get_session_key
+from jangl_utils.auth import get_token_from_request
 
 
 class SetRemoteAddrFromForwardedFor(object):
@@ -19,7 +19,7 @@ class SetRemoteAddrFromForwardedFor(object):
 
 
 def get_correlation_id(request):
-    return request.META.get('HTTP_X_' + CID_HEADER_NAME)
+    return request.META.get('HTTP_' + CID_HEADER_NAME)
 
 
 class CorrelationIDMiddleware(object):
@@ -37,28 +37,37 @@ class CorrelationIDMiddleware(object):
 
     def process_response(self, request, response):
         if request.propagate_response:
-            response.headers[CID_HEADER_NAME] = request.cid
+            response[CID_HEADER_NAME] = request.cid
         return response
 
 
-def get_service_url(service, *args):
+def get_service_url(service, *args, **kwargs):
     if not hasattr(django_settings, 'SERVICES'):
         raise NotImplementedError('Add SERVICES mapping to settings file.')
 
+    trailing_slash = kwargs.get('trailing_slash', True) and '/' or ''
+    query_string = kwargs.get('query_string')
+    query_string = '?' + query_string if query_string else ''
+
     service_url = django_settings.SERVICES[service]
-    return '{0}/{1}/'.format(service_url, '/'.join(map(str, args)))
+    url_path = '/'.join(map(str, args))
+    return '{0}/{1}{2}{3}'.format(service_url, url_path, trailing_slash, query_string)
 
 
 class BackendAPISession(requests.Session):
     def request(self, method, url, params=None, data=None, headers=None, cookies=None, files=None, auth=None,
                 timeout=None, allow_redirects=True, proxies=None, hooks=None, stream=None, verify=None, cert=None,
-                json=None):
+                json=None, **kwargs):
         if isinstance(url, (tuple, list)):
-            url = get_service_url(url[0], *url[1:])
-        response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies, files, auth, timeout,
-                                                      allow_redirects, proxies, hooks, stream, verify, cert, json)
+            url = get_service_url(url[0], *url[1:], **kwargs)
+        response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
+                                                          files, auth, timeout, allow_redirects, proxies,
+                                                          hooks, stream, verify, cert, json)
         print response.status_code
-        print response.json()
+        try:
+            print response.json()
+        except:
+            print response.text
         return response
 
 
@@ -76,8 +85,8 @@ class BackendAPIMiddleware(object):
             'Host': request.get_host(),
             'CID': request.cid,
         })
-        api_auth_key = get_session_key(request)
-        if api_auth_key:
-            api_session.headers['Authorization'] = '{0} {1}'.format('JWT', api_auth_key)
+        api_token = get_token_from_request(request)
+        if api_token:
+            api_session.headers['Authorization'] = '{0} {1}'.format('JWT', api_token)
 
         request.backend_api = api_session

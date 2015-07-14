@@ -188,8 +188,10 @@ def get_site_from_request(request):
     response = site_request.json()
     site = response['preferences']
     site.update({
+        'id': response['id'],
         'name': response['name'],
         'url': response['url'],
         'timezone': response['timezone'],
     })
+    print site
     return site

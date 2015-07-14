@@ -50,8 +50,8 @@ def get_service_url(service, *args, **kwargs):
     query_string = '?' + query_string if query_string else ''
 
     service_url = django_settings.SERVICES[service]
-    url_path = '/'.join(map(str, args))
-    return '{0}/{1}{2}{3}'.format(service_url, url_path, trailing_slash, query_string)
+    url_path = ('/' + '/'.join(map(str, args))) if args else ''
+    return ''.join((service_url, url_path, trailing_slash, query_string))
 
 
 class BackendAPISession(requests.Session):

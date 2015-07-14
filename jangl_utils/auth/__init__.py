@@ -27,7 +27,17 @@ def get_session_key(request):
 
 
 def get_user_from_request(request):
-    return get_user(request, get_session_key(request))
+    # Try to get the auth from the user session first, so someone can't change users if they have a session.
+    token = get_session_key(request)
+
+    # If there is no session, then accept header authorization
+    auth = request.META.get('HTTP_AUTHORIZATION')
+    if not token and auth:
+        split_auth = auth.split(' ')
+        if split_auth[0] == 'JWT' and len(split_auth) == 2:
+            token = split_auth[1]
+
+    return get_user(request, token)
 
 
 def authenticate(**credentials):

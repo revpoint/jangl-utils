@@ -6,8 +6,6 @@ from jangl_utils.auth.models import User, AnonymousUser
 from jangl_utils.auth.signals import user_logged_in, user_logged_out, user_login_failed
 
 
-
-
 AUTH_SESSION_KEY = '_user_token'
 AUTH_CURRENT_ACCOUNT_COOKIE = 'auth_account'
 
@@ -173,4 +171,4 @@ def set_current_account_cookie(response, current_account):
 def get_site_from_request(request):
     site_request = request.backend_api.get(('accounts', 'site'))
     site_request.raise_for_status()
-    return site_request.json()
+    return site_request.json()['preferences']

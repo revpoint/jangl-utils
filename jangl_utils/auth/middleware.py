@@ -1,7 +1,10 @@
+from django.http import HttpResponseRedirect
 from django.utils.functional import SimpleLazyObject
+from requests import HTTPError
 from jangl_utils.auth import get_user_from_request, get_account_from_request, set_current_account_cookie, \
-    get_site_from_request
+    get_site_from_request, logout
 
+EXPIRED_ERROR = "Signature has expired."
 
 
 def get_cached_user(request):
@@ -33,3 +36,12 @@ class AuthMiddleware(object):
             current_account = request._set_current_account_cookie
             set_current_account_cookie(response, current_account)
         return response
+
+    def process_exception(self, request, exception):
+        if isinstance(exception, HTTPError):
+            print exception.response.status_code
+            print exception.response.json()
+            if (exception.response.status_code == 401 and
+                        exception.response.json()['detail'] == EXPIRED_ERROR):
+                logout(request)
+                return HttpResponseRedirect('')

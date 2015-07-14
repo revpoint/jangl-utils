@@ -38,6 +38,7 @@ class CorrelationIDMiddleware(object):
     def process_response(self, request, response):
         if request.propagate_response:
             response.headers[CID_HEADER_NAME] = request.cid
+        return response
 
 
 def get_service_url(service, *args):

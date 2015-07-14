@@ -67,11 +67,12 @@ class BackendAPISession(requests.Session):
         response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
                                                           files, auth, timeout, allow_redirects, proxies,
                                                           hooks, stream, verify, cert, json)
-        print response.status_code
-        try:
-            print response.json()
-        except:
-            print response.text
+        # print response.status_code
+        # print response.url
+        # try:
+        #     print response.json()
+        # except:
+        #     print response.text
         return response
 
 

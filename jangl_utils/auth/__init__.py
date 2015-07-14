@@ -193,5 +193,4 @@ def get_site_from_request(request):
         'url': response['url'],
         'timezone': response['timezone'],
     })
-    print site
     return site

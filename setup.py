@@ -1,9 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='jangl-utils',
     version='0.1.2',
-    packages=['jangl_utils'],
+    packages=find_packages(),
     install_requires=[
         'prettyconf',
         'requests',

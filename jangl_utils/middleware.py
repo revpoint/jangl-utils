@@ -62,7 +62,7 @@ class BackendAPISession(requests.Session):
                 json=None, **kwargs):
         if isinstance(url, (tuple, list)):
             url = get_service_url(url[0], *url[1:], **kwargs)
-        if not isinstance(data, six.string_types):
+        if data and not isinstance(data, six.string_types):
             data = to_json(data)
         response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
                                                           files, auth, timeout, allow_redirects, proxies,

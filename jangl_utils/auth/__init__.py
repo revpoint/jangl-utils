@@ -4,7 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.middleware.csrf import rotate_token
 from jangl_utils.auth.models import User, AnonymousUser
 from jangl_utils.auth.signals import user_logged_in, user_logged_out, user_login_failed
-
+from jangl_utils.files import FieldFile
 
 AUTH_SESSION_KEY = '_user_token'
 AUTH_CURRENT_ACCOUNT_COOKIE = 'auth_account'
@@ -192,5 +192,7 @@ def get_site_from_request(request):
         'name': response['name'],
         'url': response['url'],
         'timezone': response['timezone'],
+        'logo': FieldFile(site['logo']),
+        'retina_logo': FieldFile(site['retina_logo']),
     })
     return site

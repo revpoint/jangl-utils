@@ -1,5 +1,6 @@
 from prettyconf import config, casts
 
+ENVIRONMENT = config('ENVIRONMENT', default='develop')
 DEBUG = config('DEBUG', default=True, cast=casts.Boolean())
 
 JANGL_EPOCH = config('JANGL_EPOCH', default=1420070400)

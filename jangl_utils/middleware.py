@@ -1,7 +1,7 @@
 from django.utils import six
 from json import dumps as to_json
 import requests
-from jangl_utils.settings import CID_HEADER_NAME, DEBUG, PRODUCTION_BACKEND_URL, LOCAL_SERVICES
+from jangl_utils.settings import CID_HEADER_NAME, PRODUCTION_BACKEND_URL, LOCAL_SERVICES, ENVIRONMENT
 from jangl_utils.unique_id import get_unique_id
 from jangl_utils.auth import get_token_from_request
 
@@ -43,7 +43,7 @@ class CorrelationIDMiddleware(object):
 
 
 def get_service_url(service, *args, **kwargs):
-    if DEBUG:
+    if ENVIRONMENT == 'develop':
         service_url = LOCAL_SERVICES[service]
     else:
         service_url = '/'.join((PRODUCTION_BACKEND_URL, service))

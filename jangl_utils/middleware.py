@@ -1,8 +1,7 @@
-from django.conf import settings as django_settings
 from django.utils import six
 from json import dumps as to_json
 import requests
-from jangl_utils.settings import CID_HEADER_NAME, DEBUG, PRODUCTION_BACKEND_URL
+from jangl_utils.settings import CID_HEADER_NAME, DEBUG, PRODUCTION_BACKEND_URL, LOCAL_SERVICES
 from jangl_utils.unique_id import get_unique_id
 from jangl_utils.auth import get_token_from_request
 
@@ -45,11 +44,9 @@ class CorrelationIDMiddleware(object):
 
 def get_service_url(service, *args, **kwargs):
     if DEBUG:
-        if not hasattr(django_settings, 'SERVICES'):
-            raise NotImplementedError('Add SERVICES mapping to settings file.')
-        service_url = django_settings.SERVICES[service]
+        service_url = LOCAL_SERVICES[service]
     else:
-        service_url = ','.join((PRODUCTION_BACKEND_URL, service))
+        service_url = '/'.join((PRODUCTION_BACKEND_URL, service))
 
     trailing_slash = kwargs.get('trailing_slash', True) and '/' or ''
     query_string = kwargs.get('query_string')
@@ -70,6 +67,7 @@ class BackendAPISession(requests.Session):
         response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
                                                           files, auth, timeout, allow_redirects, proxies,
                                                           hooks, stream, verify, cert, json)
+        # TODO: Create a logger with level DEBUG
         # print response.status_code
         # print response.url
         # try:

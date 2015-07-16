@@ -37,7 +37,7 @@ class User(namedtuple('User', USER_FIELDS)):
         pass
 
     def check_password(self, raw_password):
-        from jangl_frontend.auth import authenticate
+        from jangl_utils.auth import authenticate
         token = authenticate(email=self.email, password=raw_password)
         return token is not None
 
@@ -65,6 +65,23 @@ class User(namedtuple('User', USER_FIELDS)):
     def get_username(self):
         return self.email
 
+    @property
+    def is_staff(self):
+        return bool(self.staff)
+
+    @property
+    def is_buyer(self):
+        return bool(self.buyers)
+
+    @property
+    def is_vendor(self):
+        return bool(self.buyers)
+
+    def get_buyer(self, id):
+        return _get_by_id(self.buyers, id)
+
+    def get_vendor(self, id):
+        return _get_by_id(self.vendors, id)
 
 
 class AnonymousUser(object):
@@ -132,3 +149,27 @@ class AnonymousUser(object):
 
     def get_username(self):
         return self.username
+
+    @property
+    def is_staff(self):
+        return False
+
+    @property
+    def is_buyer(self):
+        return False
+
+    @property
+    def is_vendor(self):
+        return False
+
+    def get_buyer(self, id):
+        pass
+
+    def get_vendor(self, id):
+        pass
+
+
+def _get_by_id(list, id):
+        results = filter(lambda x: int(x['id']) == int(id), list)
+        if len(results):
+            return results[0]

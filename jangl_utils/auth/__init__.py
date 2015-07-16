@@ -2,7 +2,8 @@ import inspect
 from django.contrib.auth import _clean_credentials, _get_backends
 from django.core.exceptions import PermissionDenied
 from django.middleware.csrf import rotate_token
-from jangl_utils.auth.models import User, AnonymousUser
+from rest_framework.authentication import BaseAuthentication
+from jangl_utils.auth.models import User, AnonymousUser, _get_by_id
 from jangl_utils.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from jangl_utils.files import FieldFile
 
@@ -42,6 +43,13 @@ def get_token_from_request(request):
 def get_user_from_request(request):
     token = get_token_from_request(request)
     return get_user(request, token)
+
+
+class JWTJanglAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        token = get_token_from_request(request)
+        user = get_user(request, token)
+        return (user, token)
 
 
 def authenticate(**credentials):
@@ -119,11 +127,6 @@ class CurrentAccount(object):
         if self.account is not None:
             return self.account.get(item)
 
-    def _get_by_id(self, list, id):
-        results = filter(lambda x: x['id'] == int(id), list)
-        if len(results):
-            return results[0]
-
     def _get_account(self, user):
         if self.type == 'signup':
             return
@@ -132,9 +135,9 @@ class CurrentAccount(object):
         if self.type == 'staff':
             account = user.staff
         elif self.type == 'buyer':
-            account = self._get_by_id(user.buyers, self.id)
+            account = _get_by_id(user.buyers, self.id)
         elif self.type == 'vendor':
-            account = self._get_by_id(user.vendors, self.id)
+            account = _get_by_id(user.vendors, self.id)
 
         if account is None:
             raise AccountNotFound

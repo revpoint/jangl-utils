@@ -7,7 +7,8 @@ JANGL_EPOCH = config('JANGL_EPOCH', default=1420070400)
 
 CID_HEADER_NAME = config('CID_HEADER_NAME', default='CID')
 
-PRODUCTION_BACKEND_URL = config('PRODUCTION_BACKEND_URL', default=config('HOST', default='http://localhost:8008'))
+SERVICES_BACKEND_HOST = config('PRODUCTION_BACKEND_HOST', default=config('HOST', default='localhost'))
+SERVICES_BACKEND_PORT = config('PRODUCTION_BACKEND_PORT', default='8008')
 
 LOCAL_SERVICES = {
     'accounts': config('SERVICES_ACCOUNTS_URI', default='http://localhost:8001'),

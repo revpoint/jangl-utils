@@ -14,5 +14,5 @@ class CachedS3Storage(CachedFilesMixin, FixedS3BotoStorage):
     pass
 
 
-StaticRootS3BotoStorage = lambda: FixedS3BotoStorage(location='static')
+StaticRootS3BotoStorage = lambda: CachedS3Storage(location='static')
 MediaRootS3BotoStorage = lambda: FixedS3BotoStorage(location='media')

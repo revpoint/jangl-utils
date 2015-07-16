@@ -1,9 +1,13 @@
+import logging
 from django.utils import six
 from json import dumps as to_json
 import requests
 from jangl_utils import settings
 from jangl_utils.unique_id import get_unique_id
 from jangl_utils.auth import get_token_from_request
+
+
+logger = logging.getLogger(__name__)
 
 
 class SetRemoteAddrFromForwardedFor(object):
@@ -20,7 +24,7 @@ class SetRemoteAddrFromForwardedFor(object):
 
 
 def get_correlation_id(request):
-    return request.META.get('HTTP_' + settings.CID_HEADER_NAME)
+    return request.META.get('HTTP_' + settings.CID_HEADER_NAME.replace('-', '_'))
 
 
 class CorrelationIDMiddleware(object):
@@ -69,13 +73,9 @@ class BackendAPISession(requests.Session):
         response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
                                                           files, auth, timeout, allow_redirects, proxies,
                                                           hooks, stream, verify, cert, json)
-        # TODO: Create a logger with level DEBUG
-        # print response.status_code
-        # print response.url
-        # try:
-        #     print response.json()
-        # except:
-        #     print response.text
+
+        logger.debug('<{0}> {1} - {2}'.format(response.status_code, response.url, response.text))
+
         return response
 
 
@@ -91,7 +91,7 @@ class BackendAPIMiddleware(object):
         api_session.headers.update({
             'Content-Type': 'application/json',
             'Host': request.get_host(),
-            'CID': request.cid,
+            settings.CID_HEADER_NAME: request.cid,
         })
         api_token = get_token_from_request(request)
         if api_token:

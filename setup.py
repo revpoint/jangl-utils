@@ -7,6 +7,7 @@ setup(
     install_requires=[
         'boto',
         'django-storages',
+        'djangorestframework',
         'prettyconf',
         'requests',
         'simpleflake',

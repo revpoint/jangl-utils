@@ -195,7 +195,8 @@ def get_site_from_request(request):
         'name': response['name'],
         'url': response['url'],
         'timezone': response['timezone'],
-        'logo': FieldFile(site['logo']),
-        'retina_logo': FieldFile(site['retina_logo']),
+        'logo': FieldFile(site.get('logo')),
+        'retina_logo': FieldFile(site.get('retina_logo')),
+        'hero_image': FieldFile(site.get('hero_image')),
     })
     return site

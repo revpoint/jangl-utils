@@ -1,4 +1,3 @@
-import json
 import os
 from django.core.files.storage import default_storage
 from django.utils.encoding import force_str, smart_text

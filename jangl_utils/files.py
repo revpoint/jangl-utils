@@ -20,7 +20,7 @@ class FieldFile(object):
         return smart_text(self.name or '')
 
     def __repr__(self):
-        return force_str("<%s: %s>" % (self.__class__.__name__, self or "None"))
+        return str(self)
 
     def __bool__(self):
         return bool(self.name)

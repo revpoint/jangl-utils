@@ -1,3 +1,4 @@
+import json
 import os
 from django.core.files.storage import default_storage
 from django.utils.encoding import force_str, smart_text
@@ -20,7 +21,7 @@ class FieldFile(object):
         return smart_text(self.name or '')
 
     def __repr__(self):
-        return str(self)
+        return force_str("<%s: %s>" % (self.__class__.__name__, self or "None"))
 
     def __bool__(self):
         return bool(self.name)

@@ -4,6 +4,8 @@ setup(
     name='jangl-utils',
     version='0.1.6',
     packages=find_packages(),
+    package_data={'jangl_utils': ['templates/bootstrap/*.html']},
+    include_package_data=True,
     install_requires=[
         'boto',
         'django-storages',

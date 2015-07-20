@@ -117,7 +117,7 @@ class CurrentAccount(object):
     def __init__(self, user, account):
         type_id = account.split('-')
         self.type = type_id[0]
-        self.id = type_id[1] if len(type_id) > 1 else None
+        self.id = int(type_id[1]) if len(type_id) > 1 else None
         self.account = self._get_account(user)
 
     def __str__(self):

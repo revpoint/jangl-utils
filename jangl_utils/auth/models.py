@@ -83,6 +83,20 @@ class User(namedtuple('User', USER_FIELDS)):
     def get_vendor(self, id):
         return _get_by_id(self.vendors, id)
 
+    def has_account(self, account):
+        if account == 'staff':
+            return self.is_staff
+        try:
+            _type, _id = account.split('-')
+        except ValueError:
+            pass
+        else:
+            if _type == 'buyer':
+                return self.get_buyer(_id) is not None
+            if _type == 'vendor':
+                return self.get_buyer(_id) is not None
+        return False
+
 
 class AnonymousUser(object):
     id = None
@@ -167,6 +181,9 @@ class AnonymousUser(object):
 
     def get_vendor(self, id):
         pass
+
+    def has_account(self, account):
+        return False
 
 
 def _get_by_id(list, id):

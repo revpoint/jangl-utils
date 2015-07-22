@@ -2,7 +2,7 @@ import os
 
 __all__ = ('VERSION', 'get_version')
 
-VERSION = '0.1.6'
+VERSION = '0.1.7'
 
 
 def _get_git_revision(path):

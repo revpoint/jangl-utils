@@ -1,4 +1,5 @@
 import logging
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import six
 from json import dumps as to_json
 import requests
@@ -62,6 +63,14 @@ def get_service_url(service, *args, **kwargs):
     return ''.join((service_url, url_path, trailing_slash, query_string))
 
 
+class BackendAPIJSONEncoder(DjangoJSONEncoder):
+    def default(self, o):
+        try:
+            return super(BackendAPIJSONEncoder, self).default(o)
+        except TypeError:
+            return str(o)
+
+
 class BackendAPISession(requests.Session):
     def request(self, method, url, params=None, data=None, headers=None, cookies=None, files=None, auth=None,
                 timeout=None, allow_redirects=True, proxies=None, hooks=None, stream=None, verify=None, cert=None,
@@ -69,7 +78,7 @@ class BackendAPISession(requests.Session):
         if isinstance(url, (tuple, list)):
             url = get_service_url(url[0], *url[1:], **kwargs)
         if data and not isinstance(data, six.string_types):
-            data = to_json(data, default=lambda obj: str(obj))
+            data = to_json(data, cls=BackendAPIJSONEncoder)
         response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
                                                           files, auth, timeout, allow_redirects, proxies,
                                                           hooks, stream, verify, cert, json)

@@ -42,7 +42,7 @@ class CorrelationIDMiddleware(object):
             request.propagate_response = False
 
     def process_response(self, request, response):
-        if request.propagate_response:
+        if hasattr(request, 'propagate_response') and request.propagate_response:
             response[settings.CID_HEADER_NAME] = request.cid
         return response
 

@@ -8,6 +8,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'boto',
+        'bumpversion',
         'django-storages',
         'djangorestframework',
         'prettyconf',

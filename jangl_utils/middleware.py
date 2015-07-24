@@ -1,10 +1,13 @@
 import logging
+from types import MethodType
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import six
-from django.utils.timezone import now as tz_now
+from django.utils import timezone
+from django.utils.timezone import now as tz_now, pytz
 from json import dumps as to_json
 import requests
 from jangl_utils import settings
+from jangl_utils.etc.json import _datetime_decoder
 from jangl_utils.unique_id import get_unique_id
 from jangl_utils.auth import get_token_from_request
 
@@ -72,7 +75,22 @@ class BackendAPIJSONEncoder(DjangoJSONEncoder):
             return str(o)
 
 
+def decode_json(r, *args, **kwargs):
+    def json(self, **kwargs):
+        kwargs['object_hook'] = _datetime_decoder
+        return self._json(**kwargs)
+
+    r._json = r.json
+    r.json = MethodType(json, r, type(r))
+    return r
+
+
 class BackendAPISession(requests.Session):
+
+    def __init__(self):
+        super(BackendAPISession, self).__init__()
+        self.hooks.setdefault('response', []).append(decode_json)
+
     @property
     def session_cid(self):
         return self.headers.get(settings.CID_HEADER_NAME, '-')
@@ -121,3 +139,12 @@ class BackendAPIMiddleware(object):
             api_session.headers['Authorization'] = '{0} {1}'.format('JWT', api_token)
 
         request.backend_api = api_session
+
+
+class TimezoneMiddleware(object):
+    def process_request(self, request):
+        tz = request.account.get('timezone', request.site.get('timezone'))
+        if tz:
+            timezone.activate(pytz.timezone(tz))
+        else:
+            timezone.deactivate()

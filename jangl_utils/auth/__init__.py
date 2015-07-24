@@ -3,7 +3,7 @@ from django.contrib.auth import _clean_credentials, _get_backends
 from django.core.exceptions import PermissionDenied
 from django.middleware.csrf import rotate_token
 from rest_framework.authentication import BaseAuthentication
-from jangl_utils.auth.models import User, AnonymousUser, _get_by_id
+from jangl_utils.auth.models import User, AnonymousUser, CurrentAccount, AccountNotFound, Site
 from jangl_utils.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from jangl_utils.files import FieldFile
 
@@ -109,41 +109,6 @@ def logout(request):
 
 # Account
 
-class AccountNotFound(Exception):
-    pass
-
-
-class CurrentAccount(object):
-    def __init__(self, user, account):
-        type_id = account.split('-')
-        self.type = type_id[0]
-        self.id = int(type_id[1]) if len(type_id) > 1 else None
-        self.account = self._get_account(user)
-
-    def __str__(self):
-        return '-'.join((self.type, self.id)) if self.id is not None else self.type
-
-    def __getattr__(self, item):
-        if self.account is not None:
-            return self.account.get(item)
-
-    def _get_account(self, user):
-        if self.type == 'signup':
-            return
-
-        account = None
-        if self.type == 'staff':
-            account = user.staff
-        elif self.type == 'buyer':
-            account = _get_by_id(user.buyers, self.id)
-        elif self.type == 'vendor':
-            account = _get_by_id(user.vendors, self.id)
-
-        if account is None:
-            raise AccountNotFound
-
-        return account
-
 
 def get_default_account(user):
     if user.staff:
@@ -188,15 +153,4 @@ def set_current_account_cookie(response, current_account):
 def get_site_from_request(request):
     site_request = request.backend_api.get(('accounts', 'site'))
     site_request.raise_for_status()
-    response = site_request.json()
-    site = response['preferences']
-    site.update({
-        'id': response['id'],
-        'name': response['name'],
-        'url': response['url'],
-        'timezone': response['timezone'],
-        'logo': FieldFile(site.get('logo', '')),
-        'retina_logo': FieldFile(site.get('retina_logo', '')),
-        'hero_image': FieldFile(site.get('hero_image', '')),
-    })
-    return site
+    return Site(site_request.json(), image_fields=['logo', 'retina_logo', 'hero_image'])

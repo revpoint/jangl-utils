@@ -1,7 +1,14 @@
 from collections import namedtuple
+from jangl_utils.files import FieldFile
 
 USER_FIELDS = ('user_id', 'email', 'first_name', 'last_name',
                'buyers', 'vendors', 'staff')
+
+
+def _get_by_id(list, id):
+        results = filter(lambda x: int(x['id']) == int(id), list)
+        if len(results):
+            return results[0]
 
 
 class User(namedtuple('User', USER_FIELDS)):
@@ -186,7 +193,81 @@ class AnonymousUser(object):
         return False
 
 
-def _get_by_id(list, id):
-        results = filter(lambda x: int(x['id']) == int(id), list)
-        if len(results):
-            return results[0]
+class CurrentAccount(object):
+    def __init__(self, user, account):
+        type_id = account.split('-')
+        self.type = type_id[0]
+        self.id = int(type_id[1]) if len(type_id) > 1 else None
+        self.account = self._get_account(user)
+
+    def __str__(self):
+        return '-'.join((self.type, self.id)) if self.id is not None else self.type
+
+    def __getattr__(self, item):
+        if self.account is not None:
+            return self.account.get(item)
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def get(self, item, default=None):
+        return self[item] or default
+
+    @property
+    def is_registered(self):
+        return self.type in ('staff', 'buyer', 'vendor')
+
+    @property
+    def is_staff(self):
+        return self.type == 'staff'
+
+    @property
+    def is_buyer(self):
+        return self.type == 'buyer'
+
+    @property
+    def is_vendor(self):
+        return self.type == 'vendor'
+
+    def _get_account(self, user):
+        if self.type == 'signup':
+            return
+
+        account = None
+        if self.is_staff:
+            account = user.staff
+        elif self.is_buyer:
+            account = _get_by_id(user.buyers, self.id)
+        elif self.is_vendor:
+            account = _get_by_id(user.vendors, self.id)
+
+        if account is None:
+            raise AccountNotFound
+
+        return account
+
+
+class AccountNotFound(Exception):
+    pass
+
+
+class Site(object):
+    def __init__(self, site_dict, image_fields=None):
+        self.preferences = site_dict.pop('preferences', {})
+        self.site_dict = site_dict
+        self.image_fields = image_fields or []
+
+    def __getattr__(self, item):
+        attr = self.site_dict.get(item, self.preferences.get(item))
+        if attr and item in self.image_fields:
+            attr = FieldFile(attr)
+        return attr
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+
+    def get(self, item, default=None):
+        return self[item] or default
+
+    def __str__(self):
+        return self.name

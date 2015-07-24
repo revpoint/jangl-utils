@@ -1,6 +1,7 @@
 import logging
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import six
+from django.utils.timezone import now as tz_now
 from json import dumps as to_json
 import requests
 from jangl_utils import settings
@@ -79,11 +80,18 @@ class BackendAPISession(requests.Session):
             url = get_service_url(url[0], *url[1:], **kwargs)
         if data and not isinstance(data, six.string_types):
             data = to_json(data, cls=BackendAPIJSONEncoder)
+
+        logger.info('[{0}] API REQUEST - {1} {2}'.format(tz_now(), method.upper(), url))
+        if data:
+            logger.debug(data)
+
         response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
                                                           files, auth, timeout, allow_redirects, proxies,
                                                           hooks, stream, verify, cert, json)
 
-        logger.debug('<{0}> {1} - {2}'.format(response.status_code, response.url, response.text))
+        logger.info('[{0}] API RESPONSE - {1} {2}'.format(tz_now(), response.status_code, response.url))
+        if response.text:
+            logger.debug(response.text)
 
         return response
 

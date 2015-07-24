@@ -73,6 +73,10 @@ class BackendAPIJSONEncoder(DjangoJSONEncoder):
 
 
 class BackendAPISession(requests.Session):
+    @property
+    def session_cid(self):
+        return self.headers.get(settings.CID_HEADER_NAME, '-')
+
     def request(self, method, url, params=None, data=None, headers=None, cookies=None, files=None, auth=None,
                 timeout=None, allow_redirects=True, proxies=None, hooks=None, stream=None, verify=None, cert=None,
                 json=None, **kwargs):
@@ -81,7 +85,8 @@ class BackendAPISession(requests.Session):
         if data and not isinstance(data, six.string_types):
             data = to_json(data, cls=BackendAPIJSONEncoder)
 
-        logger.info('[{0}] API REQUEST - {1} {2}'.format(tz_now(), method.upper(), url))
+        logger.info('{0} [{1}] API REQUEST - {2} {3}'.format(tz_now(), self.session_cid,
+                                                             method.upper(), url))
         if data:
             logger.debug(data)
 
@@ -89,7 +94,8 @@ class BackendAPISession(requests.Session):
                                                           files, auth, timeout, allow_redirects, proxies,
                                                           hooks, stream, verify, cert, json)
 
-        logger.info('[{0}] API RESPONSE - {1} {2}'.format(tz_now(), response.status_code, response.url))
+        logger.info('{0} [{1}] API RESPONSE - {2} {3}'.format(tz_now(), self.session_cid,
+                                                              response.status_code, response.url))
         if response.text:
             logger.debug(response.text)
 

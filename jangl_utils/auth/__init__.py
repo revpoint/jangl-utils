@@ -154,3 +154,10 @@ def get_site_from_request(request):
     site_request = request.backend_api.get(('accounts', 'site'))
     site_request.raise_for_status()
     return Site(site_request.json(), image_fields=['logo', 'retina_logo', 'hero_image'])
+
+
+# Superuser
+
+def get_superuser_from_request(request):
+    superuser_request = request.backend_api.get(('accounts', 'is_superuser'))
+    return superuser_request.ok

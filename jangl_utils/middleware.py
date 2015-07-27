@@ -143,7 +143,10 @@ class BackendAPIMiddleware(object):
 
 class TimezoneMiddleware(object):
     def process_request(self, request):
-        tz = request.account.get('timezone', request.site.get('timezone'))
+        try:
+            tz = request.account.get('timezone', request.site.get('timezone'))
+        except AttributeError:
+            tz = 'US/Eastern'
         if tz:
             timezone.activate(pytz.timezone(tz))
         else:

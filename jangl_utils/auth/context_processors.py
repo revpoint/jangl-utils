@@ -2,7 +2,7 @@
 
 def user(request):
     return {
-        'user': request.user,
-        'account': request.account,
-        'site': request.site,
+        'user': getattr(request, 'user', None),
+        'account': getattr(request, 'account', None),
+        'site': getattr(request, 'site', None),
     }

@@ -5,7 +5,6 @@ from django.middleware.csrf import rotate_token
 from rest_framework.authentication import BaseAuthentication
 from jangl_utils.auth.models import User, AnonymousUser, CurrentAccount, AccountNotFound, Site
 from jangl_utils.auth.signals import user_logged_in, user_logged_out, user_login_failed
-from jangl_utils.files import FieldFile
 
 AUTH_SESSION_KEY = '_user_token'
 AUTH_CURRENT_ACCOUNT_COOKIE = 'auth_account'

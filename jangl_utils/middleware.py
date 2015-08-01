@@ -1,5 +1,6 @@
 import logging
 from types import MethodType
+import urllib
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import six
 from django.utils import timezone
@@ -61,6 +62,8 @@ def get_service_url(service, *args, **kwargs):
 
     trailing_slash = kwargs.get('trailing_slash', True) and '/' or ''
     query_string = kwargs.get('query_string')
+    if isinstance(query_string, dict):
+        query_string = urllib.urlencode(query_string)
     query_string = '?' + query_string if query_string else ''
 
     url_path = ('/' + '/'.join(map(str, args))) if args else ''

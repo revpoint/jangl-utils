@@ -137,6 +137,8 @@ class BackendAPIMiddleware(object):
             'Host': request.get_host(),
             settings.CID_HEADER_NAME: request.cid,
         })
+        if 'HTTP_X_TWILIO_SIGNATURE' in request.META:
+            api_session.headers['X-Twilio-Signature'] = request.META['HTTP_X_TWILIO_SIGNATURE']
         api_token = get_token_from_request(request)
         if api_token:
             api_session.headers['Authorization'] = '{0} {1}'.format('JWT', api_token)

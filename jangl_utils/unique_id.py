@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from simpleflake import simpleflake
 from . import settings
 

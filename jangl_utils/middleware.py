@@ -57,6 +57,7 @@ class BackendAPIMiddleware(object):
         api_session = get_backend_api_session(host=request.get_host(),
                                               cid=request.cid,
                                               api_token=get_token_from_request(request),
+                                              site_id=request.META.get('HTTP_X_SITE_ID'),
                                               twilio_signature=request.META.get('HTTP_X_TWILIO_SIGNATURE'))
 
         request.backend_api = api_session

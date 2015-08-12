@@ -83,21 +83,28 @@ class BackendAPISession(requests.Session):
 
         return response
 
+    def update_session_headers(self, cid=None, host=None, authorization=None,
+                               api_token=None, site_id=None, twilio_signature=None):
+        if cid:
+            self.headers[settings.CID_HEADER_NAME] = cid
 
-def get_backend_api_session(cid=None, host=None, api_token=None, twilio_signature=None):
+        if host:
+            self.headers['Host'] = host
+
+        if authorization:
+            self.headers['Authorization'] = authorization
+        elif api_token:
+            self.headers['Authorization'] = '{0} {1}'.format('JWT', api_token)
+
+        if site_id:
+            self.headers['X-Site-ID'] = site_id
+
+        if twilio_signature:
+            self.headers['X-Twilio-Signature'] = twilio_signature
+
+
+def get_backend_api_session(**kwargs):
     api_session = BackendAPISession()
     api_session.headers['Content-Type'] = 'application/json'
-
-    if cid:
-        api_session.headers[settings.CID_HEADER_NAME] = cid
-
-    if host:
-        api_session.headers['Host'] = host
-
-    if api_token:
-        api_session.headers['Authorization'] = '{0} {1}'.format('JWT', api_token)
-
-    if twilio_signature:
-        api_session.headers['X-Twilio-Signature'] = twilio_signature
-
+    api_session.update_session_headers(**kwargs)
     return api_session

@@ -102,7 +102,7 @@ class BackendAPISession(requests.Session):
             self.headers['X-Twilio-Signature'] = twilio_signature
 
         if cookies:
-            requests.utils.add_dict_to_cookiejar(self, cookies)
+            requests.utils.add_dict_to_cookiejar(self.cookies, cookies)
 
 
 def get_backend_api_session(**kwargs):

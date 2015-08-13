@@ -83,12 +83,14 @@ class BackendAPISession(requests.Session):
 
         return response
 
-    def update_session_headers(self, cid=None, host=None, authorization=None,
-                               api_token=None, site_id=None, twilio_signature=None):
+    def update_session_headers(self, cid=None, site_id=None, host=None, authorization=None,
+                               api_token=None, twilio_signature=None, cookies=None):
         if cid:
             self.headers[settings.CID_HEADER_NAME] = cid
 
-        if host:
+        if site_id:
+            self.headers['X-Site-ID'] = site_id
+        elif host:
             self.headers['Host'] = host
 
         if authorization:
@@ -96,11 +98,11 @@ class BackendAPISession(requests.Session):
         elif api_token:
             self.headers['Authorization'] = '{0} {1}'.format('JWT', api_token)
 
-        if site_id:
-            self.headers['X-Site-ID'] = site_id
-
         if twilio_signature:
             self.headers['X-Twilio-Signature'] = twilio_signature
+
+        if cookies:
+            requests.utils.add_dict_to_cookiejar(self, cookies)
 
 
 def get_backend_api_session(**kwargs):

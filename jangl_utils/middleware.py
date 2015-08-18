@@ -101,8 +101,8 @@ class AccountNamesMiddleware(object):
                     return vendor['name']
             return '-'
 
-        request.get_buyer_name = types.MethodType(get_buyer_name, request, request.__class_)
-        request.get_vendor_name = types.MethodType(get_vendor_name, request, request.__class_)
+        request.get_buyer_name = types.MethodType(get_buyer_name, request, request.__class__)
+        request.get_vendor_name = types.MethodType(get_vendor_name, request, request.__class__)
 
     def get_buyer_names(self, request):
         response = request.backend_api.get(('accounts', 'buyers', 'names'))

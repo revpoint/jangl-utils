@@ -81,3 +81,19 @@ class TimezoneMiddleware(object):
             timezone.activate(pytz.timezone(tz))
         else:
             timezone.deactivate()
+
+
+class AccountNamesMiddleware(object):
+    def process_request(self, request):
+        request.buyer_names = self.get_buyer_names(request)
+        request.vendor_names = self.get_vendor_names(request)
+
+    def get_buyer_names(self, request):
+        response = request.backend_api.get(('accounts', 'buyers', 'names'))
+        if response.ok:
+            return response.json()
+
+    def get_vendor_names(self, request):
+        response = request.backend_api.get(('accounts', 'vendors', 'names'))
+        if response.ok:
+            return response.json()

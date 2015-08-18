@@ -1,4 +1,5 @@
 import logging
+from django.http import HttpResponse
 from django.utils import timezone
 import pytz as pytz
 from jangl_utils import settings
@@ -8,6 +9,12 @@ from jangl_utils.unique_id import get_unique_id
 
 
 logger = logging.getLogger(__name__)
+
+
+class HealthCheckMiddleware(object):
+    def process_request(self, request):
+        if request.path_info == '/_hc':
+            return HttpResponse(content_type='text/plain')
 
 
 class SetRemoteAddrFromForwardedFor(object):

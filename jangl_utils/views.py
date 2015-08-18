@@ -1,3 +1,5 @@
+from django.http import HttpResponse
+from django.views.generic import View
 from rest_framework import mixins, permissions, viewsets
 
 
@@ -135,3 +137,10 @@ class JanglViewSet(MultipleSerializerMixin, MultiplePermissionsMixin,
 
 class JanglPlusDeleteViewSet(mixins.DestroyModelMixin, JanglViewSet):
     pass
+
+
+class BlankView(View):
+    def get(self, request, *args, **kwargs):
+        return HttpResponse()
+
+blank = BlankView.as_view()

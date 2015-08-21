@@ -26,14 +26,14 @@ class BaseWorker(object):
         gevent.sleep(0)
 
     def run(self, attempt=0):
-        logger.debug(gevent.getcurrent())
-        logger.debug('run: attempt {0}'.format(attempt + 1))
+        logger.info(gevent.getcurrent())
+        logger.info('run: attempt {0}'.format(attempt + 1))
         try:
             while True:
                 self.handle()
         except (KeyboardInterrupt, SystemExit, GreenletExit):
-            logger.debug(gevent.getcurrent())
-            logger.debug('greenlet exit')
+            logger.info(gevent.getcurrent())
+            logger.info('greenlet exit')
         except Exception as exc:
             logger.error(gevent.getcurrent())
             logger.error('Unrecoverable error: %r', exc, exc_info=True)

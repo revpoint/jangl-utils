@@ -62,10 +62,17 @@ class BackendAPISession(requests.Session):
     def request(self, method, url, params=None, data=None, headers=None, cookies=None, files=None, auth=None,
                 timeout=None, allow_redirects=True, proxies=None, hooks=None, stream=None, verify=None, cert=None,
                 json=None, **kwargs):
+        site_id = kwargs.pop('site_id', None)
+
         if isinstance(url, (tuple, list)):
             url = get_service_url(url[0], *url[1:], **kwargs)
         if data and not isinstance(data, six.string_types):
             data = to_json(data, cls=BackendAPIJSONEncoder)
+
+        if site_id:
+            if headers is None:
+                headers = {}
+            headers['X-Site-ID'] = site_id
 
         logger.info('{0} [{1}] API REQUEST - {2} {3}'.format(tz_now(), self.session_cid,
                                                              method.upper(), url))

@@ -106,14 +106,15 @@ class AccountNamesMiddleware(object):
         request.get_buyer_name = types.MethodType(get_buyer_name, request, request.__class__)
         request.get_vendor_name = types.MethodType(get_vendor_name, request, request.__class__)
 
+    # TODO: make these lazy
     def get_buyer_names(self, request):
-        if not hasattr(request, 'account') or request.account.is_staff:
+        if hasattr(request, 'account') and request.account.is_staff:
             response = request.backend_api.get(('accounts', 'buyers', 'names'))
             if response.ok:
                 return response.json()
 
     def get_vendor_names(self, request):
-        if not hasattr(request, 'account') or request.account.is_staff:
+        if hasattr(request, 'account') and request.account.is_staff:
             response = request.backend_api.get(('accounts', 'vendors', 'names'))
             if response.ok:
                 return response.json()

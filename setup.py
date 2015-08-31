@@ -15,6 +15,7 @@ setup(
         'requests',
         'simpleflake',
     ],
+    scripts=['bin/chronos-sync.rb'],
     url='https://github.com/revpoint/jangl-utils',
     author='RevPoint Media LLC',
     author_email='jangl@revpointmedia.com',

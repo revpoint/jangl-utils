@@ -104,6 +104,15 @@ class User(namedtuple('User', USER_FIELDS)):
                 return self.get_buyer(_id) is not None
         return False
 
+    def has_multiple_accounts(self):
+        num_buyers = len(self.buyers)
+        num_vendors = len(self.vendors)
+
+        if self.is_staff:
+            return (num_buyers + num_vendors) > 0
+        else:
+            return (num_buyers + num_vendors) > 1
+
 
 class AnonymousUser(object):
     id = None
@@ -190,6 +199,9 @@ class AnonymousUser(object):
         pass
 
     def has_account(self, account):
+        return False
+
+    def has_multiple_accounts(self):
         return False
 
 

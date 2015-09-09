@@ -149,8 +149,8 @@ def set_current_account_cookie(response, current_account):
 
 # Site
 
-def get_site_from_request(request):
-    site_request = request.backend_api.get(('accounts', 'site'))
+def get_site_from_request(request, site_id=None):
+    site_request = request.backend_api.get(('accounts', 'site'), site_id=site_id)
     site_request.raise_for_status()
     return Site(site_request.json(), image_fields=['logo', 'retina_logo', 'hero_image'])
 

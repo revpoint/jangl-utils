@@ -75,6 +75,7 @@ def render_widget(obj, **attrs):
 
 @register.filter
 def glyphicon_bool(obj):
-    return '<span class="glyphicon {}"> </span>'.format(
+    glyph = '<span class="glyphicon {}"> </span>'.format(
         'glyphicon-ok-sign text-success' if obj else 'glyphicon-remove-sign text-danger'
     )
+    return mark_safe(glyph)

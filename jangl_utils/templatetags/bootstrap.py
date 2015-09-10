@@ -10,6 +10,7 @@ register = Library()
 TEMPLATE_ERRORS = 'bootstrap/_non_field_errors.html'
 TEMPLATE_HORIZONTAL = 'bootstrap/_field_horizontal.html'
 TEMPLATE_VERTICAL = 'bootstrap/_field_vertical.html'
+TEMPLATE_DISPLAY = 'bootstrap/_field_display.html'
 
 
 def render_non_field_errors(errors):
@@ -30,6 +31,8 @@ def render_field(bound_field, show_label, template):
         input_type = 'textarea'
     elif isinstance(widget, forms.CheckboxInput):
         input_type = 'checkbox'
+    elif isinstance(widget, (forms.FileInput)):
+        input_type = 'file'
     elif issubclass(type(widget), forms.MultiWidget):
         input_type = 'multi_widget'
     else:
@@ -66,6 +69,12 @@ def as_horizontal_form(obj, show_label=True):
 def as_vertical_form(obj, show_label=True):
     return as_bootstrap(obj=obj, show_label=show_label,
                         template=TEMPLATE_VERTICAL)
+
+
+@register.filter
+def as_display_form(obj, show_label=True):
+    return as_bootstrap(obj=obj, show_label=show_label,
+                        template=TEMPLATE_DISPLAY)
 
 
 @register.simple_tag

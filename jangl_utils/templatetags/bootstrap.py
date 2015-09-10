@@ -71,3 +71,10 @@ def as_vertical_form(obj, show_label=True):
 @register.simple_tag
 def render_widget(obj, **attrs):
     return obj.as_widget(attrs=attrs)
+
+
+@register.filter
+def glyphicon_bool(obj):
+    return '<span class="glyphicon {}"> </span>'.format(
+        'glyphicon-ok-sign text-success' if obj else 'glyphicon-remove-sign text-danger'
+    )

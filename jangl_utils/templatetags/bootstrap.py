@@ -4,6 +4,7 @@ from django.forms.utils import ErrorList
 from django.template import Library, Context, TemplateSyntaxError
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
+from django.utils.text import capfirst
 
 register = Library()
 
@@ -88,3 +89,8 @@ def glyphicon_bool(obj):
         'glyphicon-ok-sign text-success' if obj else 'glyphicon-remove-sign text-danger'
     )
     return mark_safe(glyph)
+
+
+@register.filter
+def replace_underscore(val):
+    return capfirst(val.replace('_', ' '))

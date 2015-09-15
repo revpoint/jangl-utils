@@ -9,7 +9,7 @@ setup(
     install_requires=[
         'boto',
         'bumpversion',
-        'confluent-schemaregistry',
+        'confluent-schemaregistry==0.1.0',
         'django-storages',
         'djangorestframework',
         'prettyconf',
@@ -19,7 +19,7 @@ setup(
         'pytz',
     ],
     dependency_links = [
-        'https://github.com/verisign/python-confluent-schemaregistry/archive/v0.1.0.zip#egg=confluent-schemaregistry',
+        'https://github.com/verisign/python-confluent-schemaregistry/archive/v0.1.0.zip#egg=confluent-schemaregistry-0.1.0',
         'git+https://github.com/revpoint/pykafka@676b3119ff9f4cd2a5bebf1ee0e3e52071cd65af#egg=pykafka',
     ],
     scripts=['bin/chronos-sync.rb'],

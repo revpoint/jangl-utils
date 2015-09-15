@@ -20,7 +20,7 @@ setup(
     ],
     dependency_links = [
         'https://github.com/verisign/python-confluent-schemaregistry/archive/v0.1.0.zip#egg=confluent-schemaregistry',
-        'git+https://github.com/revpoint/pykafka@676b3119ff9f4cd2a5bebf1ee0e3e52071cd65af#egg=pykafka',
+        'https://github.com/revpoint/pykafka/archive/master.zip#egg=pykafka',
     ],
     scripts=['bin/chronos-sync.rb'],
     url='https://github.com/revpoint/jangl-utils',

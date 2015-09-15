@@ -19,7 +19,7 @@ setup(
         'pytz',
     ],
     dependency_links = [
-        'git+https://github.com/verisign/python-confluent-schemaregistry@7e24c3a2509fa798932df411f394004b6718bb12#egg=confluent-schemaregistry',
+        'git+https://github.com/verisign/python-confluent-schemaregistry@7e24c3a2509fa798932df411f394004b6718bb12#egg=confluent-schemaregistry-0.1.0',
         'git+https://github.com/revpoint/pykafka@676b3119ff9f4cd2a5bebf1ee0e3e52071cd65af#egg=pykafka',
     ],
     scripts=['bin/chronos-sync.rb'],

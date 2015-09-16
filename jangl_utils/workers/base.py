@@ -92,7 +92,7 @@ class KafkaConsumerWorker(BaseWorker):
         self.consumer = self.topic.get_balanced_consumer(self.consumer_name,
                                                          zookeeper_connect=zookeeper_url)
 
-        schema_registry_url = self.kwargs.get('schema_registry_url', getattr(settings, 'KAFKA_SCHEMA_REGISTRY_URL'))
+        schema_registry_url = self.kwargs.get('schema_registry_url', getattr(settings, 'SCHEMA_REGISTRY_URL'))
         schema_client = CachedSchemaRegistryClient(url=schema_registry_url)
         self.serializer = MessageSerializer(schema_client)
 

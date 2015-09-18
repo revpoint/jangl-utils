@@ -7,7 +7,8 @@ from pykafka import KafkaClient
 from pykafka.partitioners import hashing_partitioner, random_partitioner
 from pytz import utc
 from jangl_utils.backend_api import get_service_url
-from jangl_utils.kafka import settings, exceptions, Schema
+from jangl_utils.kafka import settings, exceptions
+from jangl_utils.kafka.schemas import Schema
 
 logger = logging.getLogger(__name__)
 

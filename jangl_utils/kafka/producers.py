@@ -6,13 +6,11 @@ from datetime import datetime
 from pykafka import KafkaClient
 from pykafka.partitioners import hashing_partitioner, random_partitioner
 from pytz import utc
-from jangl_utils.kafka import settings
-from jangl_utils.kafka.exceptions import MissingKeyError, InvalidDataError
-from jangl_utils.kafka.schemas import Schema
+from jangl_utils.backend_api import get_service_url
+from jangl_utils.kafka import settings, exceptions, Schema
 
 logger = logging.getLogger(__name__)
 
-ENABLE_KAFKA = getattr(settings, 'ENABLE_KAFKA', False)
 
 def tz_now():
     return datetime.utcnow().replace(tzinfo=utc)
@@ -26,7 +24,7 @@ class Producer(object):
     value_schema = None
 
     def __init__(self, **kwargs):
-        if ENABLE_KAFKA is False:
+        if settings.ENABLE_KAFKA is False:
             return
 
         # Set topic name
@@ -34,9 +32,9 @@ class Producer(object):
         logger.debug('set kafka topic to: ' + self.topic_name)
 
         # Set kafka url and client
-        self.kafka_url = kwargs.get('kafka_url') or self.get_kafka_url()
-        logger.debug('connecting to kafka with url: ' + self.kafka_url)
-        self.kafka_client = KafkaClient(hosts=self.kafka_url)
+        self.broker_url = kwargs.get('broker_url') or self.get_broker_url()
+        logger.debug('connecting to kafka with url: ' + self.broker_url)
+        self.kafka_client = KafkaClient(hosts=self.broker_url)
 
         # Set topic
         assert self.topic_name in self.kafka_client.topics, \
@@ -67,14 +65,18 @@ class Producer(object):
             raise NotImplementedError
         return self.topic_name
 
-    def get_kafka_url(self):
-        kafka_url = settings.KAFKA_URL
-        if kafka_url is None:
+    def get_broker_url(self):
+        broker_url = settings.BROKER_URL
+        if broker_url is None:
             raise NotImplementedError
-        return kafka_url
+        return broker_url
 
     def get_schema_registry_url(self):
-        schema_registry_url = settings.SCHEMA_REGISTRY_URL
+        schema_microservice = settings.SCHEMA_MICROSERVICE
+        if schema_microservice:
+            schema_registry_url = get_service_url(schema_microservice)
+        else:
+            schema_registry_url = settings.SCHEMA_REGISTRY_URL
         if schema_registry_url is None:
             raise NotImplementedError
         return schema_registry_url
@@ -115,6 +117,9 @@ class Producer(object):
         - self.send_message(message)
 
         """
+        if settings.ENABLE_KAFKA is False:
+            return
+
         if self.has_key:
             if len(args) == 2:
                 key, message = args
@@ -122,12 +127,12 @@ class Producer(object):
                 try:
                     key, message = args[0]
                 except ValueError:
-                    raise MissingKeyError
+                    raise exceptions.MissingKeyError
             elif 'key' in kwargs and 'message' in kwargs:
                 key = kwargs['key']
                 message = kwargs['message']
             else:
-                raise InvalidDataError
+                raise exceptions.InvalidDataError
 
             logger.debug('key: ' + str(key))
             logger.debug('message: ' + str(message))
@@ -150,7 +155,7 @@ class Producer(object):
             self.producer.produce([encoded_message])
 
         else:
-            raise InvalidDataError
+            raise exceptions.InvalidDataError
 
 
 class HashedPartitionProducer(Producer):

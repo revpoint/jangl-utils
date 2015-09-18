@@ -24,9 +24,6 @@ class Producer(object):
     value_schema = None
 
     def __init__(self, **kwargs):
-        if settings.ENABLE_KAFKA is False:
-            return
-
         # Set topic name
         self.topic_name = kwargs.get('topic_name') or self.get_topic_name()
         logger.debug('set kafka topic to: ' + self.topic_name)
@@ -117,9 +114,6 @@ class Producer(object):
         - self.send_message(message)
 
         """
-        if settings.ENABLE_KAFKA is False:
-            return
-
         if self.has_key:
             if len(args) == 2:
                 key, message = args

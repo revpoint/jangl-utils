@@ -76,7 +76,7 @@ def authenticate(**credentials):
     user_login_failed.send(sender=__name__, request=credentials.get('request'), email=credentials.get('email'))
 
 
-def login(request, token):
+def login(request, token, send_signal=True):
     if AUTH_SESSION_KEY in request.session:
         if request.session[AUTH_SESSION_KEY] != token:
             request.session.flush()
@@ -90,7 +90,8 @@ def login(request, token):
         request.user = user
         del request._cached_account
     rotate_token(request)
-    user_logged_in.send(sender=user.__class__, request=request, user=user)
+    if send_signal:
+        user_logged_in.send(sender=user.__class__, request=request, user=user)
 
 
 def logout(request):

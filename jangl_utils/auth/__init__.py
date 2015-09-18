@@ -14,6 +14,7 @@ AUTH_CURRENT_ACCOUNT_COOKIE = 'auth_account'
 
 def get_user(request, token):
     if token is not None:
+        request.backend_api.update_session_headers(api_token=token)
         user_request = request.backend_api.get(('accounts', 'user'))
 
         if user_request.ok:

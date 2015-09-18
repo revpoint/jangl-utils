@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='jangl-utils',
-    version='0.3.2',
+    version='0.3.3',
     packages=find_packages(),
     package_data={'jangl_utils': ['templates/bootstrap/*.html']},
     include_package_data=True,

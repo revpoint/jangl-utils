@@ -88,6 +88,7 @@ def login(request, token):
 
     if hasattr(request, 'user'):
         request.user = user
+        del request._cached_account
     rotate_token(request)
     user_logged_in.send(sender=user.__class__, request=request, user=user)
 
@@ -103,6 +104,7 @@ def logout(request):
     if hasattr(request, 'user'):
         from jangl_utils.auth.models import AnonymousUser
         request.user = AnonymousUser()
+        del request._cached_account
 
 
 # Account

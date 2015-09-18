@@ -95,7 +95,7 @@ class Producer(object):
         partitioner = self.partitioner
         return lambda *args: partitioner(*args)
 
-    def format_timestamp(self, timestamp=None):
+    def get_timestamp(self, timestamp=None):
         if timestamp is None:
             timestamp = tz_now()
         if isinstance(timestamp, datetime):

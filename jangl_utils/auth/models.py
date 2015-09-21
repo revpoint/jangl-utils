@@ -213,7 +213,7 @@ class CurrentAccount(object):
         self.account = self._get_account(user)
 
     def __str__(self):
-        return '-'.join((self.type, self.id)) if self.id is not None else self.type
+        return '{}-{}'.format(self.type, self.id) if self.id is not None else self.type
 
     def __getattr__(self, item):
         if self.account is not None:

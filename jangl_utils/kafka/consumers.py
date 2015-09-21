@@ -3,6 +3,7 @@ import logging
 from confluent.schemaregistry.client import CachedSchemaRegistryClient
 from confluent.schemaregistry.serializers import MessageSerializer
 from pykafka import KafkaClient
+from pytz import utc
 from jangl_utils.backend_api import get_service_url
 from jangl_utils.kafka import settings
 from jangl_utils.workers import BaseWorker
@@ -93,7 +94,7 @@ class KafkaConsumerWorker(BaseWorker):
 
     def parse_message(self, message):
         if 'timestamp' in message:
-            message['timestamp'] = datetime.fromtimestamp(message['timestamp'])
+            message['timestamp'] = datetime.fromtimestamp(message['timestamp'], utc)
         return message
 
     def commit(self):

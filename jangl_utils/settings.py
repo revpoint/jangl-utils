@@ -9,12 +9,3 @@ CID_HEADER_NAME = config('CID_HEADER_NAME', default='X-CID')
 
 SERVICES_BACKEND_HOST = config('PRODUCTION_BACKEND_HOST', default=config('HOST', default='localhost'))
 SERVICES_BACKEND_PORT = config('PRODUCTION_BACKEND_PORT', default='8008')
-
-LOCAL_SERVICES = {
-    'accounts': config('SERVICES_ACCOUNTS_URI', default='http://localhost:8001'),
-    'caps': config('SERVICES_CAPS_URI', default='http://localhost:8005'),
-    'calls': config('SERVICES_CALLS_URI', default='http://localhost:8003'),
-    'location': config('SERVICES_GEO_URI', default='http://localhost:8006'),
-    'leads': config('SERVICES_LEADS_URI', default='http://localhost:8004'),
-    'prefs': config('SERVICES_PREFS_URI', default='http://localhost:8002'),
-}

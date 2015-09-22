@@ -14,12 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 def get_service_url(service, *args, **kwargs):
-    if settings.ENVIRONMENT == 'develop':
-        service_url = settings.LOCAL_SERVICES[service]
-    else:
-        service_url = 'http://{0}:{1}/{2}'.format(settings.SERVICES_BACKEND_HOST,
-                                                  settings.SERVICES_BACKEND_PORT,
-                                                  service)
+    service_url = 'http://{0}:{1}/{2}'.format(settings.SERVICES_BACKEND_HOST,
+                                              settings.SERVICES_BACKEND_PORT,
+                                              service)
 
     trailing_slash = kwargs.get('trailing_slash', True) and '/' or ''
     query_string = kwargs.get('query_string')

@@ -2,7 +2,6 @@ from django.conf import settings
 import gevent
 from greenlet import GreenletExit
 import logging
-from raven.contrib.django.models import get_client
 import signal
 
 logger = logging.getLogger(__name__)
@@ -34,7 +33,12 @@ class BaseWorker(object):
             logger.error(gevent.getcurrent())
             logger.error('Unrecoverable error: %r', exc, exc_info=True)
             if getattr(settings, 'SENTRY_URL'):
-                get_client().captureException()
+                try:
+                    from raven.contrib.django.models import get_client
+                except ImportError:
+                    pass
+                else:
+                    get_client().captureException()
 
             if attempt < 2:
                 self.wait()

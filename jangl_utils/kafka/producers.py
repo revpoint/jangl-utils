@@ -138,7 +138,7 @@ class Producer(object):
             logger.debug('encoded key: ' + str(encoded_key))
             logger.debug('encoded message: ' + str(encoded_message))
 
-            self.producer.produce([(encoded_key, encoded_message)])
+            self.producer.produce(encoded_message, partition_key=encoded_key)
 
         elif len(args) == 1:
             message = args[0]
@@ -147,7 +147,7 @@ class Producer(object):
             encoded_message = self.value_schema.encode_message(message)
             logger.debug('encoded message: ' + str(encoded_message))
 
-            self.producer.produce([encoded_message])
+            self.producer.produce(encoded_message)
 
         else:
             raise exceptions.InvalidDataError

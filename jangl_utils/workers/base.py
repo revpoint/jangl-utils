@@ -1,3 +1,4 @@
+import sys
 from django.conf import settings
 import gevent
 from greenlet import GreenletExit
@@ -9,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class BaseWorker(object):
     sleep_time = 5
+    attempt = 0
 
     def __init__(self, **kwargs):
         self.kwargs = kwargs
@@ -20,9 +22,10 @@ class BaseWorker(object):
     def done(self):
         gevent.sleep(0)
 
-    def run(self, attempt=0):
+    def run(self):
+        self.attempt += 1
         logger.info(gevent.getcurrent())
-        logger.info('run: attempt {0}'.format(attempt + 1))
+        logger.info('run: attempt {0}'.format(self.attempt))
         try:
             while True:
                 self.handle()
@@ -40,11 +43,19 @@ class BaseWorker(object):
                 else:
                     get_client().captureException()
 
-            if attempt < 2:
+            if self.attempt < 2:
                 self.wait()
-                self.run(attempt+1)
+                self.run()
+                self.start_decrease_attempt_timer()
             else:
-                raise
+                sys.exit(1)
+
+    def start_decrease_attempt_timer(self):
+        seconds = 30 * (2 ** self.attempt)
+        gevent.spawn_later(seconds, self.decrease_attempt)
+
+    def decrease_attempt(self):
+        self.attempt -= 1
 
     def handle(self):
         pass

@@ -82,7 +82,7 @@ class User(namedtuple('User', USER_FIELDS)):
 
     @property
     def is_vendor(self):
-        return bool(self.buyers)
+        return bool(self.vendors)
 
     def get_buyer(self, id):
         return _get_by_id(self.buyers, id)

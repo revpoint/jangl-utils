@@ -23,6 +23,7 @@ class Producer(object):
     partitioner = lambda self, *args: random_partitioner(*args)
     key_schema = None
     value_schema = None
+    async = True
 
     def __init__(self, **kwargs):
         # Set topic name
@@ -40,8 +41,7 @@ class Producer(object):
         self.topic = self.kafka_client.topics[self.topic_name]
 
         # Set producer
-        partitioner = kwargs.get('partitioner') or self.get_partitioner()
-        self.producer = self.topic.get_producer(partitioner=partitioner)
+        self.partitioner = kwargs.get('partitioner') or self.get_partitioner()
 
         # Set schema registry
         schema_registry_url = kwargs.get('schema_registry_url') or self.get_schema_registry_url()
@@ -102,6 +102,11 @@ class Producer(object):
             timestamp = mktime(timestamp.timetuple()) + (timestamp.microsecond / 1e6)
         return timestamp
 
+    def produce(self, *args, **kwargs):
+        get_producer = self.topic.get_producer if self.async else self.topic.get_sync_producer
+        with get_producer(partitioner=self.partitioner) as producer:
+            producer.produce(*args, **kwargs)
+
     def send_message(self, *args, **kwargs):
         """ Send a message to kafka
 
@@ -138,7 +143,7 @@ class Producer(object):
             logger.debug('encoded key: ' + str(encoded_key))
             logger.debug('encoded message: ' + str(encoded_message))
 
-            self.producer.produce(encoded_message, partition_key=encoded_key)
+            self.produce(encoded_message, partition_key=encoded_key)
 
         elif len(args) == 1:
             message = args[0]
@@ -147,7 +152,7 @@ class Producer(object):
             encoded_message = self.value_schema.encode_message(message)
             logger.debug('encoded message: ' + str(encoded_message))
 
-            self.producer.produce(encoded_message)
+            self.produce(encoded_message)
 
         else:
             raise exceptions.InvalidDataError

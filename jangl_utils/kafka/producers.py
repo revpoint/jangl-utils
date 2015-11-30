@@ -102,10 +102,14 @@ class Producer(object):
             timestamp = mktime(timestamp.timetuple()) + (timestamp.microsecond / 1e6)
         return timestamp
 
+    def get_producer(self):
+        producer = self.topic.get_producer if self.async else self.topic.get_sync_producer
+        return producer(partitioner=self.partitioner)
+
     def produce(self, *args, **kwargs):
-        get_producer = self.topic.get_producer if self.async else self.topic.get_sync_producer
-        with get_producer(partitioner=self.partitioner) as producer:
-            producer.produce(*args, **kwargs)
+        if not hasattr(self, '_producer') or not self._producer._running:
+            self._producer = self.get_producer()
+        self._producer.produce(*args, **kwargs)
 
     def send_message(self, *args, **kwargs):
         """ Send a message to kafka

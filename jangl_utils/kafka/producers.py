@@ -107,9 +107,17 @@ class Producer(object):
         return producer(partitioner=self.partitioner)
 
     def produce(self, *args, **kwargs):
-        if not hasattr(self, '_producer') or not self._producer._running:
-            self._producer = self.get_producer()
-        self._producer.produce(*args, **kwargs)
+        producer = kwargs.pop('producer', None)
+        if producer is None:
+            with self.get_producer() as producer:
+                producer.produce(*args, **kwargs)
+        else:
+            producer.produce(*args, **kwargs)
+
+    def send_messages(self, messages):
+        with self.get_producer() as producer:
+            for message in messages:
+                self.send_message(message, producer=producer)
 
     def send_message(self, *args, **kwargs):
         """ Send a message to kafka
@@ -124,6 +132,7 @@ class Producer(object):
         - self.send_message(message)
 
         """
+        producer = kwargs.get('producer')
         if self.has_key:
             if len(args) == 2:
                 key, message = args
@@ -147,7 +156,7 @@ class Producer(object):
             logger.debug('encoded key: ' + str(encoded_key))
             logger.debug('encoded message: ' + str(encoded_message))
 
-            self.produce(encoded_message, partition_key=encoded_key)
+            self.produce(encoded_message, partition_key=encoded_key, producer=producer)
 
         elif len(args) == 1:
             message = args[0]
@@ -156,7 +165,7 @@ class Producer(object):
             encoded_message = self.value_schema.encode_message(message)
             logger.debug('encoded message: ' + str(encoded_message))
 
-            self.produce(encoded_message)
+            self.produce(encoded_message, producer=producer)
 
         else:
             raise exceptions.InvalidDataError

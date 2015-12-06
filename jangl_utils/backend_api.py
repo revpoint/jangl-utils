@@ -63,8 +63,11 @@ class BackendAPISession(requests.Session):
 
         if isinstance(url, (tuple, list)):
             url = get_service_url(url[0], *url[1:], **kwargs)
-        if data and not isinstance(data, six.string_types):
-            data = to_json(data, cls=BackendAPIJSONEncoder)
+        if data:
+            if isinstance(data, unicode):
+                data = data.encode('utf-8')
+            elif not isinstance(data, six.string_types):
+                data = to_json(data, cls=BackendAPIJSONEncoder)
 
         if site_id:
             if headers is None:

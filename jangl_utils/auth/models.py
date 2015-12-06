@@ -101,7 +101,7 @@ class User(namedtuple('User', USER_FIELDS)):
             if _type == 'buyer':
                 return self.get_buyer(_id) is not None
             if _type == 'vendor':
-                return self.get_buyer(_id) is not None
+                return self.get_vendor(_id) is not None
         return False
 
     def has_multiple_accounts(self):

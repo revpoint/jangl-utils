@@ -1,9 +1,9 @@
 import sys
-from django.conf import settings
 import gevent
 from greenlet import GreenletExit
 import logging
 import signal
+from jangl_utils import sentry
 
 logger = logging.getLogger(__name__)
 
@@ -24,24 +24,15 @@ class BaseWorker(object):
 
     def run(self):
         self.attempt += 1
-        logger.info(gevent.getcurrent())
-        logger.info('run: attempt {0}'.format(self.attempt))
+        logger.info('run: attempt %d - %s', self.attempt, gevent.getcurrent())
         try:
             while True:
                 self.handle()
         except (KeyboardInterrupt, SystemExit, GreenletExit):
-            logger.info(gevent.getcurrent())
-            logger.info('greenlet exit')
+            logger.info('greenlet exit %s', gevent.getcurrent())
         except Exception as exc:
-            logger.error(gevent.getcurrent())
-            logger.error('Unrecoverable error: %r', exc, exc_info=True)
-            if getattr(settings, 'SENTRY_URL'):
-                try:
-                    from raven.contrib.django.models import get_client
-                except ImportError:
-                    pass
-                else:
-                    get_client().captureException()
+            logger.error('Unrecoverable error %s: %r', gevent.getcurrent(), exc, exc_info=True)
+            sentry.captureException()
 
             if self.attempt < 2:
                 self.wait()
@@ -68,7 +59,8 @@ class BaseWorker(object):
 
     def start(self):
         gevent.signal(signal.SIGTERM, gevent.kill)
-        self.setup()
+        with sentry.capture_on_error():
+            self.setup()
         self.thread = gevent.spawn(self.run)
         self.thread.link(self.end)
 

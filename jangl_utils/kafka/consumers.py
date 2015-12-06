@@ -15,6 +15,7 @@ class KafkaConsumerWorker(BaseWorker):
     topic_name = None
     consumer_name = None
     commit_on_complete = True
+    timestamp_fields = ['timestamp']
 
     def setup(self):
         # Set topic name
@@ -93,8 +94,12 @@ class KafkaConsumerWorker(BaseWorker):
             self.wait()
 
     def parse_message(self, message):
-        if 'timestamp' in message:
-            message['timestamp'] = datetime.fromtimestamp(message['timestamp'], utc)
+        for field in self.timestamp_fields:
+            if field in message:
+                try:
+                    message[field] = datetime.fromtimestamp(message[field], utc)
+                except TypeError:
+                    pass
         return message
 
     def commit(self):

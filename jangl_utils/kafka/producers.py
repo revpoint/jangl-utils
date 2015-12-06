@@ -24,6 +24,7 @@ class Producer(object):
     key_schema = None
     value_schema = None
     async = True
+    async_wait = 1000
 
     def __init__(self, **kwargs):
         # Set topic name
@@ -104,7 +105,7 @@ class Producer(object):
 
     def get_producer(self):
         producer = self.topic.get_producer if self.async else self.topic.get_sync_producer
-        return producer(partitioner=self.partitioner)
+        return producer(partitioner=self.partitioner, linger_ms=self.async_wait)
 
     def produce(self, *args, **kwargs):
         producer = kwargs.pop('producer', None)

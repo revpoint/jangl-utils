@@ -13,7 +13,7 @@ except ImportError:
 
 def captureException(*args, **kwargs):
     if sentry_client:
-        sentry_client.captureException(*args, **kwargs)
+        return sentry_client.captureException(*args, **kwargs)
 
 
 @contextmanager

@@ -60,13 +60,14 @@ class BackendAPISession(requests.Session):
                 timeout=None, allow_redirects=True, proxies=None, hooks=None, stream=None, verify=None, cert=None,
                 json=None, **kwargs):
         site_id = kwargs.pop('site_id', None)
+        force_json = kwargs.pop('force_json', True)
 
         if isinstance(url, (tuple, list)):
             url = get_service_url(url[0], *url[1:], **kwargs)
         if data:
             if isinstance(data, unicode):
                 data = data.encode('utf-8')
-            elif not isinstance(data, six.string_types):
+            elif force_json and not isinstance(data, six.string_types):
                 data = to_json(data, cls=BackendAPIJSONEncoder)
 
         if site_id:

@@ -3,6 +3,7 @@ import logging
 from confluent.schemaregistry.client import CachedSchemaRegistryClient
 from confluent.schemaregistry.serializers import MessageSerializer
 from pykafka import KafkaClient
+from pykafka.common import OffsetType
 from pytz import utc
 from jangl_utils.backend_api import get_service_url
 from jangl_utils.kafka import settings
@@ -16,6 +17,8 @@ class KafkaConsumerWorker(BaseWorker):
     consumer_name = None
     commit_on_complete = True
     timestamp_fields = ['timestamp']
+    auto_offset_reset = OffsetType.EARLIEST
+    reset_offset_on_start = False
 
     def setup(self):
         # Set topic name
@@ -37,7 +40,9 @@ class KafkaConsumerWorker(BaseWorker):
         zookeeper_url = self.get_zookeeper_url()
         logger.debug('loading zookeeper with url: ' + zookeeper_url)
         self.consumer = self.topic.get_balanced_consumer(self.consumer_name,
-                                                         zookeeper_connect=zookeeper_url)
+                                                         zookeeper_connect=zookeeper_url,
+                                                         auto_offset_reset=self.auto_offset_reset,
+                                                         reset_offset_on_start=self.reset_offset_on_start)
 
         # Set schema registry
         schema_registry_url = self.get_schema_registry_url()

@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class KafkaConsumerWorker(BaseWorker):
+    client_settings = {'use_greenlets': True}
     topic_name = None
     consumer_name = None
     consumer_settings = {}
@@ -26,7 +27,7 @@ class KafkaConsumerWorker(BaseWorker):
         # Set kafka url and client
         self.broker_url = self.get_broker_url()
         logger.debug('connecting to kafka with url: ' + self.broker_url)
-        self.kafka_client = KafkaClient(hosts=self.broker_url)
+        self.kafka_client = KafkaClient(hosts=self.broker_url, **self.client_settings)
 
         # Set topic
         assert self.topic_name in self.kafka_client.topics, \

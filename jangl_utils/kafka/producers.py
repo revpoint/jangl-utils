@@ -24,7 +24,8 @@ class Producer(object):
     key_schema = None
     value_schema = None
     async = True
-    async_wait = 1000
+    async_wait = 200
+    client_settings = {'use_greenlets': True}
 
     def __init__(self, **kwargs):
         # Set topic name
@@ -34,7 +35,7 @@ class Producer(object):
         # Set kafka url and client
         self.broker_url = kwargs.get('broker_url') or self.get_broker_url()
         logger.debug('connecting to kafka with url: ' + self.broker_url)
-        self.kafka_client = KafkaClient(hosts=self.broker_url)
+        self.kafka_client = KafkaClient(hosts=self.broker_url, **self.client_settings)
 
         # Set topic
         assert self.topic_name in self.kafka_client.topics, \

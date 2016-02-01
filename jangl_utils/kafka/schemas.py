@@ -42,9 +42,13 @@ class Schema(object):
     def update_schema(self, new_schema=None):
         if new_schema is None:
             new_schema = self.local_schema
-        is_compatible = self.schema_client.test_compatibility(self.subject, new_schema)
-        if is_compatible and self.schema_client.get_version(self.subject, new_schema) == -1:
+        if self.test_compatibility(new_schema) and self.schema_client.get_version(self.subject, new_schema) == -1:
             self.register_schema(new_schema)
+
+    def test_compatibility(self, new_schema=None):
+        if new_schema is None:
+            new_schema = self.local_schema
+        return self.schema_client.test_compatibility(self.subject, new_schema)
 
     def encode_message(self, message):
         if self.schema_id is None:

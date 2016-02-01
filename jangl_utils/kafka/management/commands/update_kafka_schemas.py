@@ -45,9 +45,13 @@ class Command(LabelCommand):
     def handle_schema(self, schema, **options):
         if options.get('test_compatibility'):
             self.stdout.write('{} is {}compatible with existing schema'.format(
-                schema,
+                schema.subject,
                 '' if schema.test_compatibility() else 'not '
             ))
+            if schema.already_exists():
+                self.stdout.write('{} already exists'.format(schema.subject))
+            else:
+                self.stdout.write('{} does not exist'.format(schema.subject))
         else:
             if not options.get('quiet'):
                 self.stdout.write('Updating {}'.format(schema))

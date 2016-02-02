@@ -86,16 +86,16 @@ class TimezoneMiddleware(object):
 
 class AccountNamesMiddleware(object):
     def process_request(self, request):
-        request.buyer_names = self.get_buyer_names(request)
-        request.vendor_names = self.get_vendor_names(request)
+        request.buyer_names = self.get_buyer_names(request) or {}
+        request.vendor_names = self.get_vendor_names(request) or {}
 
         def get_buyer_name(self, buyer_id):
-            if self.buyer_names:
-                return self.buyer_names.get(buyer_id)
+            if buyer_id in self.buyer_names:
+                return self.buyer_names[buyer_id]['name']
 
         def get_vendor_name(self, vendor_id):
-            if self.vendor_names:
-                return self.vendor_names.get(vendor_id)
+            if vendor_id in self.vendor_names:
+                return self.vendor_names[vendor_id]['name']
 
         request.get_buyer_name = types.MethodType(get_buyer_name, request, request.__class__)
         request.get_vendor_name = types.MethodType(get_vendor_name, request, request.__class__)

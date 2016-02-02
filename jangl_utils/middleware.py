@@ -89,19 +89,13 @@ class AccountNamesMiddleware(object):
         request.buyer_names = self.get_buyer_names(request)
         request.vendor_names = self.get_vendor_names(request)
 
-        def get_buyer_name(self, id):
+        def get_buyer_name(self, buyer_id):
             if self.buyer_names:
-                for buyer in self.buyer_names:
-                    if str(buyer['id']) == str(id):
-                        return buyer['name']
-            return '-'
+                return self.buyer_names.get(buyer_id)
 
-        def get_vendor_name(self, id):
+        def get_vendor_name(self, vendor_id):
             if self.vendor_names:
-                for vendor in self.vendor_names:
-                    if str(vendor['id']) == str(id):
-                        return vendor['name']
-            return '-'
+                return self.vendor_names.get(vendor_id)
 
         request.get_buyer_name = types.MethodType(get_buyer_name, request, request.__class__)
         request.get_vendor_name = types.MethodType(get_vendor_name, request, request.__class__)
@@ -111,10 +105,10 @@ class AccountNamesMiddleware(object):
         if hasattr(request, 'account') and request.account.is_staff:
             response = request.backend_api.get(('accounts', 'buyers', 'names'))
             if response.ok:
-                return response.json()
+                return {buyer['id']: buyer for buyer in response.json()}
 
     def get_vendor_names(self, request):
         if hasattr(request, 'account') and request.account.is_staff:
             response = request.backend_api.get(('accounts', 'vendors', 'names'))
             if response.ok:
-                return response.json()
+                return {vendor['id']: vendor for vendor in response.json()}

@@ -26,6 +26,7 @@ class Producer(object):
     async = True
     async_wait = 200
     client_settings = {'use_greenlets': True}
+    producer_settings = {}
 
     def __init__(self, **kwargs):
         # Set topic name
@@ -106,7 +107,7 @@ class Producer(object):
 
     def get_producer(self):
         producer = self.topic.get_producer if self.async else self.topic.get_sync_producer
-        return producer(partitioner=self.partitioner, linger_ms=self.async_wait)
+        return producer(partitioner=self.partitioner, linger_ms=self.async_wait, **self.producer_settings)
 
     def produce(self, *args, **kwargs):
         producer = kwargs.pop('producer', None)

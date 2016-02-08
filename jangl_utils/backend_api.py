@@ -75,8 +75,9 @@ class BackendAPISession(requests.Session):
                 headers = {}
             headers['X-Site-ID'] = site_id
 
-        logger.info('{0} [{1}] API REQUEST - {2} {3}'.format(tz_now(), self.session_cid,
-                                                             method.upper(), url))
+        cid = ' [{}]'.format(self.session_cid) if self.session_cid else ''
+        logger.info('{0}{1} API REQUEST - {2} {3}'.format(tz_now(), cid,
+                                                          method.upper(), url))
         if data:
             logger.debug(data)
 
@@ -84,8 +85,8 @@ class BackendAPISession(requests.Session):
                                                           files, auth, timeout, allow_redirects, proxies,
                                                           hooks, stream, verify, cert, json)
 
-        logger.info('{0} [{1}] API RESPONSE - {2} {3}'.format(tz_now(), self.session_cid,
-                                                              response.status_code, response.url))
+        logger.info('{0}{1} API RESPONSE - {2} {3}'.format(tz_now(), cid,
+                                                           response.status_code, response.url))
         if response.text:
             logger.debug(response.text)
 

@@ -1,14 +1,18 @@
 from importlib import import_module
 from django.conf import settings
-from django.core.management import BaseCommand
+from django.core.management import BaseCommand, CommandError
 import gevent
 from jangl_utils.workers.base import worker_registry
 
 
 class Command(BaseCommand):
+    args = '<worker_name worker_name ...>'
 
-    def handle(self, *args, **options):
-        workers = [w.spawn() for w in self.find_workers()]
+    def handle(self, *worker_names, **options):
+        workers = [w.spawn() for w in self.find_workers()
+                   if worker_names and w.worker_name in worker_names]
+        if not workers:
+            raise CommandError('Could not find workers')
         try:
             gevent.joinall(workers)
         except (KeyboardInterrupt, SystemExit):

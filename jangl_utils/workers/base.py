@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 class BaseWorker(object):
     sleep_time = 5
     attempt = 0
+    worker_name = None
 
     def __init__(self, **kwargs):
         self.kwargs = kwargs
@@ -44,9 +45,11 @@ class BaseWorker(object):
     def start_decrease_attempt_timer(self):
         seconds = 30 * (2 ** self.attempt)
         gevent.spawn_later(seconds, self.decrease_attempt)
+        logger.info('set decrease timer: %d seconds - %s', seconds, gevent.getcurrent())
 
     def decrease_attempt(self):
         self.attempt -= 1
+        logger.info('attempt decreased: attempt %d - %s', self.attempt, gevent.getcurrent())
 
     def handle(self):
         pass

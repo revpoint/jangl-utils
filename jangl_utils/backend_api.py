@@ -54,7 +54,7 @@ class BackendAPISession(requests.Session):
 
     @property
     def session_cid(self):
-        return self.headers.get(settings.CID_HEADER_NAME, '-')
+        return self.headers.get(settings.CID_HEADER_NAME)
 
     def request(self, method, url, params=None, data=None, headers=None, cookies=None, files=None, auth=None,
                 timeout=None, allow_redirects=True, proxies=None, hooks=None, stream=None, verify=None, cert=None,

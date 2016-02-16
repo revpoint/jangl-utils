@@ -9,8 +9,12 @@ class Command(BaseCommand):
     args = '<worker_name worker_name ...>'
 
     def handle(self, *worker_names, **options):
-        workers = [w.spawn() for w in self.find_workers()
-                   if worker_names and w.worker_name in worker_names]
+        if worker_names:
+            workers = [w.spawn() for w in self.find_workers()
+                       if w.worker_name in worker_names]
+        else:
+            workers = [w.spawn() for w in self.find_workers()]
+
         if not workers:
             raise CommandError('Could not find workers')
         try:

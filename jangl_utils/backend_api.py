@@ -1,11 +1,15 @@
 import logging
 import urllib
 from types import MethodType
+
+import gevent
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import six
 from django.utils.timezone import now as tz_now, pytz
 from json import dumps as to_json
 import requests
+from requests.packages.urllib3.exceptions import ConnectionError
+
 from jangl_utils import settings
 from jangl_utils.etc.json import _datetime_decoder
 
@@ -61,6 +65,8 @@ class BackendAPISession(requests.Session):
                 json=None, **kwargs):
         site_id = kwargs.pop('site_id', None)
         force_json = kwargs.pop('force_json', True)
+        retry = kwargs.pop('retry', 3)
+        retry_on_bad_response = kwargs.pop('retry_on_bad_response', False)
 
         if isinstance(url, (tuple, list)):
             url = get_service_url(url[0], *url[1:], **kwargs)
@@ -81,9 +87,22 @@ class BackendAPISession(requests.Session):
         if data:
             logger.debug(data)
 
-        response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
-                                                          files, auth, timeout, allow_redirects, proxies,
-                                                          hooks, stream, verify, cert, json)
+        def try_request(_try=0):
+            try:
+                response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
+                                                                  files, auth, timeout, allow_redirects, proxies,
+                                                                  hooks, stream, verify, cert, json)
+            except ConnectionError:
+                if _try >= retry:
+                    raise
+                gevent.sleep(0.1 * 2 ** _try)
+                return try_request(_try + 1)
+            else:
+                if retry_on_bad_response and not response.ok:
+                    gevent.sleep(0.1 * 2 ** _try)
+                    return try_request(_try + 1)
+                return response
+        response = try_request()
 
         logger.info('{0}{1} API RESPONSE - {2} {3}'.format(tz_now(), cid,
                                                            response.status_code, response.url))

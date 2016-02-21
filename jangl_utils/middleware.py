@@ -1,5 +1,7 @@
 import logging
 import types
+
+import uwsgi as uwsgi
 from django.http import HttpResponse
 from django.utils import timezone
 import pytz as pytz
@@ -47,6 +49,7 @@ class CorrelationIDMiddleware(object):
         else:
             request.cid = get_unique_id()
             request.propagate_response = False
+        uwsgi.set_logvar('cid', request.cid)
 
     def process_response(self, request, response):
         if hasattr(request, 'propagate_response') and request.propagate_response:

@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class HealthCheckMiddleware(object):
     def process_request(self, request):
         if request.path_info == '/_hc':
+            uwsgi.set_logvar('cid', 'null')
             return HttpResponse(content_type='text/plain')
 
 

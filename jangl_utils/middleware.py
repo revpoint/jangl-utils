@@ -49,7 +49,7 @@ class CorrelationIDMiddleware(object):
         else:
             request.cid = get_unique_id()
             request.propagate_response = False
-        uwsgi.set_logvar('cid', request.cid)
+        uwsgi.set_logvar('cid', str(request.cid))
 
     def process_response(self, request, response):
         if hasattr(request, 'propagate_response') and request.propagate_response:

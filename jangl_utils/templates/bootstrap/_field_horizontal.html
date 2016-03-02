@@ -11,8 +11,8 @@
             {% render_widget bound_field class="form-control" %}
         {% endif %}
         {% if input_type == "checkbox" %}
-            <label class="checkbox" for="id_{{ bound_field.html_name }}">
-                {% render_widget bound_field class="make-switch" %}
+            <label class="checkbox make-switch" for="id_{{ bound_field.html_name }}">
+                {% render_widget bound_field %}
                 {% if not show_label %}{{ bound_field.label }}{% endif %}
             </label>
         {% endif %}

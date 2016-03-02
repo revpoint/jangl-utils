@@ -12,7 +12,7 @@
         {% endif %}
         {% if input_type == "checkbox" %}
             <label class="checkbox" for="id_{{ bound_field.html_name }}">
-                {% render_widget bound_field %}
+                {% render_widget bound_field class="make-switch" %}
                 {% if not show_label %}{{ bound_field.label }}{% endif %}
             </label>
         {% endif %}

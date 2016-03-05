@@ -74,8 +74,9 @@ def as_vertical_form(obj, show_label=True):
 
 @register.filter
 def as_display_form(obj, show_label=True):
-    return as_bootstrap(obj=obj, show_label=show_label,
+    form = as_bootstrap(obj=obj, show_label=show_label,
                         template=TEMPLATE_DISPLAY)
+    return '<div class="form-horizontal">{}</div>'.format(form)
 
 
 @register.simple_tag

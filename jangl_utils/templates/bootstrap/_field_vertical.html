@@ -10,6 +10,9 @@
         {% if input_type == "input" or input_type == "textarea" or input_type == "select" or input_type == "file" %}
             {% render_widget bound_field class="form-control" %}
         {% endif %}
+        {% if bound_field.errors and input_type == "input" %}
+            <span class="glyphicon glyphicon-remove form-control-feedback"></span>
+        {% endif %}
         {% if input_type == "checkbox" %}
             <div class="make-switch">
                 {% render_widget bound_field %}
@@ -41,9 +44,6 @@
 
         {% if bound_field.errors %}
             {% for error in bound_field.errors %}
-                {% if input_type == "input" %}
-                    <span class="glyphicon glyphicon-remove form-control-feedback"></span>
-                {% endif %}
                 <span class="text-danger">{{ error }}</span>
             {% endfor %}
         {% endif %}

@@ -86,7 +86,9 @@ class KafkaConsumerWorker(BaseWorker):
     def handle(self):
         message = self.consumer.consume()
         if message is not None:
-            message = self.serializer.decode_message(message.value)
+            offset = message.offset
+            message = OffsetMessage(self.serializer.decode_message(message.value))
+            message.offset = offset
             message = self.parse_message(message)
 
             self.consume_message(message)
@@ -110,4 +112,8 @@ class KafkaConsumerWorker(BaseWorker):
 
     def consume_message(self, message):
         pass
+
+
+class OffsetMessage(dict):
+    offset = None
 

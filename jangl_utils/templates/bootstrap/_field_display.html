@@ -10,9 +10,9 @@
             {% if input_type == 'checkbox' %}
             {{ value|glyphicon_bool }}
             {% elif input_type == 'file' %}
-            {% if value %}<a href="{{ value.url }}" target="_blank"><span class="glyphicon glyphicon-file"></span> {{ value.name }}</a>{% endif %}
+            {% if value %}<a href="{{ value.url }}" target="_blank"><span class="glyphicon glyphicon-file"></span> {{ value.name }}</a>{% else %}&nbsp;{% endif %}
             {% else %}
-            {{ value }}
+            {% if value %}{{ value }}{% else %}&nbsp;{% endif %}
             {% endif %}
         {% endwith %}</p>
     </div>

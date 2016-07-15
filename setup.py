@@ -17,10 +17,8 @@ setup(
         'pytz',
     ],
     extras_require={
-        'kafka': [
-            'rpm-confluent-schemaregistry',
-            'pykafka',
-        ],
+        'kafka': ['rpm-confluent-schemaregistry', 'pykafka'],
+        'dev': ['bumpversion', 'fabric', 'pytest-django']
     },
     scripts=['bin/chronos-sync.rb'],
     url='https://github.com/revpoint/jangl-utils',

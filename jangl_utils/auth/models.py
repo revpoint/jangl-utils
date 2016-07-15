@@ -2,7 +2,7 @@ from collections import namedtuple
 from jangl_utils.files import FieldFile
 
 USER_FIELDS = ('user_id', 'email', 'first_name', 'last_name',
-               'buyers', 'vendors', 'staff')
+               'buyers', 'vendors', 'affiliates', 'staff')
 
 
 def _get_by_id(list, id):
@@ -84,11 +84,18 @@ class User(namedtuple('User', USER_FIELDS)):
     def is_vendor(self):
         return bool(self.vendors)
 
+    @property
+    def is_affiliate(self):
+        return bool(self.affiliates)
+
     def get_buyer(self, id):
         return _get_by_id(self.buyers, id)
 
     def get_vendor(self, id):
         return _get_by_id(self.vendors, id)
+
+    def get_affiliate(self, id):
+        return _get_by_id(self.affiliates, id)
 
     def has_account(self, account):
         if account == 'staff':
@@ -102,16 +109,19 @@ class User(namedtuple('User', USER_FIELDS)):
                 return self.get_buyer(_id) is not None
             if _type == 'vendor':
                 return self.get_vendor(_id) is not None
+            if _type == 'affiliate':
+                return self.get_affiliate(_id) is not None
         return False
 
     def has_multiple_accounts(self):
         num_buyers = len(self.buyers)
         num_vendors = len(self.vendors)
+        num_affiliates = len(self.affiliates)
 
         if self.is_staff:
-            return (num_buyers + num_vendors) > 0
+            return (num_buyers + num_vendors + num_affiliates) > 0
         else:
-            return (num_buyers + num_vendors) > 1
+            return (num_buyers + num_vendors + num_affiliates) > 1
 
 
 class AnonymousUser(object):
@@ -127,6 +137,7 @@ class AnonymousUser(object):
     email = None
     buyers = []
     vendors = []
+    affiliates = []
     staff = None
 
     def __init__(self):
@@ -192,10 +203,17 @@ class AnonymousUser(object):
     def is_vendor(self):
         return False
 
+    @property
+    def is_affiliate(self):
+        return False
+
     def get_buyer(self, id):
         pass
 
     def get_vendor(self, id):
+        pass
+
+    def get_affiliate(self, id):
         pass
 
     def has_account(self, account):
@@ -227,7 +245,7 @@ class CurrentAccount(object):
 
     @property
     def is_registered(self):
-        return self.type in ('staff', 'buyer', 'vendor')
+        return self.type in ('staff', 'buyer', 'vendor', 'affiliate')
 
     @property
     def is_staff(self):
@@ -240,6 +258,10 @@ class CurrentAccount(object):
     @property
     def is_vendor(self):
         return self.type == 'vendor'
+
+    @property
+    def is_affiliate(self):
+        return self.type == 'affiliate'
 
     def _get_account(self, user):
         if self.type == 'signup':

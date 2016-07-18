@@ -1,0 +1,2 @@
+recursive-include jangl_utils/templates *.html *.txt *.xml
+global-exclude .DS_Store

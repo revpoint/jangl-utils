@@ -20,14 +20,14 @@ class KafkaConsumerWorker(BaseWorker):
     timestamp_fields = ['timestamp']
 
     def setup(self):
-        # Set topic name
-        self.topic_name = self.get_topic_name()
-        logger.debug('set kafka topic to: ' + self.topic_name)
-
         # Set kafka url and client
         self.broker_url = self.get_broker_url()
         logger.debug('connecting to kafka with url: ' + self.broker_url)
         self.kafka_client = KafkaClient(hosts=self.broker_url, **self.client_settings)
+
+        # Set topic name
+        self.topic_name = self.get_topic_name()
+        logger.debug('set kafka topic to: ' + self.topic_name)
 
         # Set topic
         assert self.topic_name in self.kafka_client.topics, \
@@ -35,11 +35,9 @@ class KafkaConsumerWorker(BaseWorker):
         self.topic = self.kafka_client.topics[self.topic_name]
 
         # Set consumer
-        self.consumer_name = self.get_consumer_name()
-        zookeeper_url = self.get_zookeeper_url()
-        logger.debug('loading zookeeper with url: ' + zookeeper_url)
-        self.consumer = self.topic.get_balanced_consumer(self.consumer_name,
-                                                         zookeeper_connect=zookeeper_url,
+        consumer_name = self.get_consumer_name()
+        logger.debug('loading consumer: ' + consumer_name)
+        self.consumer = self.topic.get_balanced_consumer(consumer_name, managed=True,
                                                          **self.consumer_settings)
 
         # Set schema registry
@@ -108,7 +106,8 @@ class KafkaConsumerWorker(BaseWorker):
         return message
 
     def commit(self):
-        self.consumer.commit_offsets()
+        if not self.consumer_settings.get('auto_commit_enable'):
+            self.consumer.commit_offsets()
 
     def consume_message(self, message):
         pass

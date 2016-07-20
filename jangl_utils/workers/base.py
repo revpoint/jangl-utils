@@ -40,6 +40,7 @@ class BaseWorker(object):
                 self.run()
                 self.start_decrease_attempt_timer()
             else:
+                self.teardown()
                 sys.exit(1)
 
     def start_decrease_attempt_timer(self):

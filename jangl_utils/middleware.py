@@ -1,7 +1,7 @@
 import logging
 import types
 
-import uwsgi as uwsgi
+import uwsgi
 from django.http import HttpResponse
 from django.utils import timezone
 import pytz as pytz
@@ -95,6 +95,7 @@ class AccountNamesMiddleware(object):
     def process_request(self, request):
         request.buyer_names = self.get_buyer_names(request) or {}
         request.vendor_names = self.get_vendor_names(request) or {}
+        request.affiliate_names = self.get_affiliate_names(request) or {}
 
         def get_buyer_name(self, buyer_id):
             if buyer_id in self.buyer_names:
@@ -104,8 +105,13 @@ class AccountNamesMiddleware(object):
             if vendor_id in self.vendor_names:
                 return self.vendor_names[vendor_id]['name']
 
+        def get_affiliate_name(self, affiliate_id):
+            if affiliate_id in self.affiliate_names:
+                return self.affiliate_names[affiliate_id]['name']
+
         request.get_buyer_name = types.MethodType(get_buyer_name, request, request.__class__)
         request.get_vendor_name = types.MethodType(get_vendor_name, request, request.__class__)
+        request.get_affiliate_name = types.MethodType(get_affiliate_name, request, request.__class__)
 
     # TODO: make these lazy
     def get_buyer_names(self, request):
@@ -115,6 +121,10 @@ class AccountNamesMiddleware(object):
     def get_vendor_names(self, request):
         if hasattr(request, 'account') and request.account.is_staff:
             return self.get_names(request, 'vendors')
+
+    def get_affiliate_names(self, request):
+        if hasattr(request, 'account') and request.account.is_staff:
+            return self.get_names(request, 'affiliates')
 
     def get_names(self, request, account_type):
         if cache:

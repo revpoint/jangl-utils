@@ -1,5 +1,7 @@
 from datetime import datetime
 import logging
+
+import decimal
 from confluent.schemaregistry.client import CachedSchemaRegistryClient
 from confluent.schemaregistry.serializers import MessageSerializer
 from pykafka import KafkaClient
@@ -18,6 +20,8 @@ class KafkaConsumerWorker(BaseWorker):
     consumer_settings = {}
     commit_on_complete = True
     timestamp_fields = ['timestamp']
+    decimal_fields = []
+    boolean_fields = []
 
     def setup(self):
         # Set kafka url and client
@@ -101,6 +105,18 @@ class KafkaConsumerWorker(BaseWorker):
             if field in message:
                 try:
                     message[field] = datetime.fromtimestamp(message[field], utc)
+                except TypeError:
+                    pass
+        for field in self.decimal_fields:
+            if field in message:
+                try:
+                    message[field] = decimal.Decimal(message[field])
+                except (TypeError, decimal.InvalidOperation):
+                    pass
+        for field in self.boolean_fields:
+            if field in message:
+                try:
+                    message[field] = bool(message[field])
                 except TypeError:
                     pass
         return message

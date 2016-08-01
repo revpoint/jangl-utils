@@ -105,6 +105,8 @@ class KafkaConsumerWorker(BaseWorker):
             if field in message:
                 try:
                     message[field] = datetime.fromtimestamp(message[field], utc)
+                except ValueError:
+                    message[field] = datetime.fromtimestamp(message[field]/1000, utc)
                 except TypeError:
                     pass
         for field in self.decimal_fields:

@@ -27,8 +27,8 @@ class Producer(object):
     key_schema = None
     value_schema = None
     async = True
-    async_wait = 200
-    num_retry_attempts = 3
+    async_wait = 100
+    num_retry_attempts = 1
     retry_backoff_ms = 200
     client_settings = {'use_greenlets': True}
     producer_settings = {}
@@ -124,8 +124,8 @@ class Producer(object):
             except (SocketDisconnectedError, ProduceFailureError, ProducerStoppedException), e:
                 self._producer.stop()
                 self._producer = self.get_producer()
-                gevent.sleep(i * (self.retry_backoff_ms / 1000.0))
                 logger.warn('Producer error on {}: {}'.format(self.get_topic_name(), e))
+                gevent.sleep(i * (self.retry_backoff_ms / 1000.0))
 
     def send_messages(self, messages):
         for message in messages:

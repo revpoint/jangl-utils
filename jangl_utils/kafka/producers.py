@@ -121,12 +121,13 @@ class Producer(object):
         for i in range(self.num_retry_attempts):
             try:
                 self._producer.produce(*args, **kwargs)
-                break
             except (SocketDisconnectedError, ProduceFailureError, ProducerStoppedException), e:
                 self._producer.stop()
                 self._producer = self.get_producer()
                 logger.warn('Producer error on {}: {}'.format(self.get_topic_name(), e))
                 gevent.sleep(i * (self.retry_backoff_ms / 1000.0))
+            else:
+                break
 
     def send_messages(self, messages):
         for message in messages:

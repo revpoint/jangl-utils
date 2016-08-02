@@ -28,7 +28,7 @@ class Producer(object):
     value_schema = None
     async = True
     async_wait = 100
-    num_retry_attempts = 1
+    num_retry_attempts = 3
     retry_backoff_ms = 200
     client_settings = {'use_greenlets': True}
     producer_settings = {}
@@ -121,6 +121,7 @@ class Producer(object):
         for i in range(self.num_retry_attempts):
             try:
                 self._producer.produce(*args, **kwargs)
+                break
             except (SocketDisconnectedError, ProduceFailureError, ProducerStoppedException), e:
                 self._producer.stop()
                 self._producer = self.get_producer()

@@ -6,7 +6,7 @@ from confluent.schemaregistry.client import CachedSchemaRegistryClient
 from confluent.schemaregistry.serializers import MessageSerializer
 from datetime import datetime
 from pykafka import KafkaClient
-from pykafka.exceptions import KafkaException
+from pykafka.exceptions import SocketDisconnectedError, ProduceFailureError, ProducerStoppedException
 from pykafka.partitioners import hashing_partitioner, random_partitioner
 from pytz import utc
 from jangl_utils.backend_api import get_service_url
@@ -121,10 +121,11 @@ class Producer(object):
         for i in range(self.num_retry_attempts):
             try:
                 self._producer.produce(*args, **kwargs)
-            except KafkaException:
+            except (SocketDisconnectedError, ProduceFailureError, ProducerStoppedException), e:
                 self._producer.stop()
                 self._producer = self.get_producer()
                 gevent.sleep(i * (self.retry_backoff_ms / 1000.0))
+                logger.warn('Producer error on {}: {}'.format(self.get_topic_name(), e))
 
     def send_messages(self, messages):
         for message in messages:

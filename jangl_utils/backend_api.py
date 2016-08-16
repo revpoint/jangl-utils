@@ -73,7 +73,7 @@ class BackendAPISession(requests.Session):
         if site_id:
             if headers is None:
                 headers = {}
-            headers['X-Site-ID'] = site_id
+            headers['X-Site-ID'] = str(site_id)
 
         cid = ' [{}]'.format(self.session_cid) if self.session_cid else ''
         logger.info('{0}{1} API REQUEST - {2} {3}'.format(tz_now(), cid,
@@ -95,12 +95,12 @@ class BackendAPISession(requests.Session):
     def update_session_headers(self, cid=None, site_id=None, host=None, authorization=None,
                                api_token=None, twilio_signature=None, cookies=None):
         if cid:
-            self.headers[settings.CID_HEADER_NAME] = cid
+            self.headers[settings.CID_HEADER_NAME] = str(cid)
 
         if site_id:
-            self.headers['X-Site-ID'] = site_id
+            self.headers['X-Site-ID'] = str(site_id)
         elif host:
-            self.headers['Host'] = host
+            self.headers['Host'] = str(host)
 
         if authorization:
             self.headers['Authorization'] = authorization

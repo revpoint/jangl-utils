@@ -31,14 +31,16 @@ class BaseWorker(object):
                 self.handle()
         except (KeyboardInterrupt, SystemExit, GreenletExit):
             logger.info('greenlet exit %s', gevent.getcurrent())
+            self.teardown()
+            sys.exit(0)
         except Exception as exc:
             logger.error('Unrecoverable error %s: %r', gevent.getcurrent(), exc, exc_info=True)
             sentry.captureException()
 
             if self.attempt < 2:
                 self.wait()
-                self.run()
                 self.start_decrease_attempt_timer()
+                self.run()
             else:
                 self.teardown()
                 sys.exit(1)

@@ -64,11 +64,11 @@ class BaseWorker(object):
         pass
 
     def start(self):
-        gevent.signal(signal.SIGTERM, gevent.kill)
         with sentry.capture_on_error():
             self.setup()
         self.thread = gevent.spawn(self.run)
         self.thread.link(self.end)
+        gevent.signal(signal.SIGTERM, self.thread.kill)
 
     def end(self, greenlet):
         self.teardown()

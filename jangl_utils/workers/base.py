@@ -33,7 +33,6 @@ class BaseWorker(object):
             logger.info('greenlet exit %s', gevent.getcurrent())
             logger.warning('tearing down')
             self.teardown()
-            gevent.sleep(10)
         except Exception as exc:
             logger.error('Unrecoverable error %s: %r', gevent.getcurrent(), exc, exc_info=True)
             sentry.captureException()

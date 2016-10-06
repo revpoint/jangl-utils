@@ -21,6 +21,8 @@ class Command(BaseCommand):
             gevent.joinall(workers)
         except (KeyboardInterrupt, SystemExit):
             gevent.killall(workers)
+        finally:
+            gevent.sleep(10)
 
     def find_workers(self):
         for app in settings.INSTALLED_APPS:

@@ -31,8 +31,9 @@ class BaseWorker(object):
                 self.handle()
         except (KeyboardInterrupt, SystemExit, GreenletExit):
             logger.info('greenlet exit %s', gevent.getcurrent())
+            logger.warning('tearing down')
             self.teardown()
-            gevent.wait(timeout=5)
+            gevent.sleep(10)
             sys.exit(0)
         except Exception as exc:
             logger.error('Unrecoverable error %s: %r', gevent.getcurrent(), exc, exc_info=True)

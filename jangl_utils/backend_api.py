@@ -126,7 +126,7 @@ class CachedBackendAPISession(BackendAPISession):
             backend_api_cache = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
             cache = django_settings.CACHES.get(backend_api_cache)
             if cache:
-                cache_key = hashkey(self.headers, *args, **kwargs)
+                cache_key = hashkey(self.headers, self.cookies.get_dict(), *args, **kwargs)
                 result = cache.get(cache_key)
                 if result is not None:
                     return result

@@ -8,6 +8,7 @@ setup(
     install_requires=[
         'boto',
         'bumpversion',
+        'cachetools',
         'django-storages',
         'djangorestframework',
         'prettyconf',

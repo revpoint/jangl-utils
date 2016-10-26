@@ -1,5 +1,6 @@
 boto>=2.38.0
 bumpversion>=0.5.3
+cachetools>=2.0.0
 Django>=1.8,<1.9
 django-storages>=1.1.8
 djangorestframework>=3.2.1

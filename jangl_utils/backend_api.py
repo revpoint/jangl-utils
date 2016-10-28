@@ -17,9 +17,6 @@ from jangl_utils.etc.json import _datetime_decoder
 
 logger = logging.getLogger(__name__)
 
-backend_api_cache = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
-cache = caches[backend_api_cache]
-
 
 def get_service_url(service, *args, **kwargs):
     service_url = 'http://{0}:{1}/{2}'.format(settings.SERVICES_BACKEND_HOST,
@@ -122,11 +119,17 @@ class BackendAPISession(requests.Session):
             requests.utils.add_dict_to_cookiejar(self.cookies, cookies)
 
 
+DISABLE_BACKEND_API_CACHE = getattr(django_settings, 'DISABLE_BACKEND_API_CACHE', settings.DISABLE_BACKEND_API_CACHE)
+if not DISABLE_BACKEND_API_CACHE:
+    BACKEND_API_CACHE = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
+    cache = caches[BACKEND_API_CACHE]
+
+
 class CachedBackendAPISession(BackendAPISession):
     def request(self, *args, **kwargs):
         cache_seconds = kwargs.pop('cache_seconds', 0)
         cache_refresh = kwargs.pop('cache_refresh', None)
-        if cache_seconds:
+        if cache_seconds and not DISABLE_BACKEND_API_CACHE:
             cache_key = self.get_cache_key(*args, **kwargs)
             result = cache.get(cache_key)
 

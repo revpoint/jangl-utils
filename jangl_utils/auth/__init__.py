@@ -15,7 +15,7 @@ AUTH_CURRENT_ACCOUNT_COOKIE = 'auth_account'
 def get_user(request, token):
     if token is not None:
         request.backend_api.update_session_headers(api_token=token)
-        user_request = request.backend_api.get(('accounts', 'user'))
+        user_request = request.backend_api.get(('accounts', 'user'), cache_seconds=3600, cache_refresh=30)
 
         if user_request.ok:
             return User(**user_request.json())
@@ -153,7 +153,8 @@ def set_current_account_cookie(response, current_account):
 # Site
 
 def get_site_from_request(request, site_id=None):
-    site_request = request.backend_api.get(('accounts', 'site'), site_id=site_id)
+    site_request = request.backend_api.get(('accounts', 'site'), site_id=site_id,
+                                           cache_seconds=3600, cache_refresh=60)
     site_request.raise_for_status()
     return Site(site_request.json(), image_fields=['logo', 'retina_logo', 'hero_image'])
 
@@ -161,5 +162,5 @@ def get_site_from_request(request, site_id=None):
 # Superuser
 
 def get_superuser_from_request(request):
-    superuser_request = request.backend_api.get(('accounts', 'is_superuser'))
+    superuser_request = request.backend_api.get(('accounts', 'is_superuser'), cache_seconds=3600, cache_refresh=600)
     return superuser_request.ok

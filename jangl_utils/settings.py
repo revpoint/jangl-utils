@@ -9,3 +9,5 @@ CID_HEADER_NAME = config('CID_HEADER_NAME', default='X-CID')
 
 SERVICES_BACKEND_HOST = config('PRODUCTION_BACKEND_HOST', default=config('HOST', default='localhost'))
 SERVICES_BACKEND_PORT = config('PRODUCTION_BACKEND_PORT', default='8008')
+
+DISABLE_BACKEND_API_CACHE = config('DISABLE_BACKEND_API_CACHE', default=False, cast=casts.Boolean())

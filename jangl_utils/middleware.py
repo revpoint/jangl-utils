@@ -8,7 +8,6 @@ import pytz as pytz
 from jangl_utils import settings
 from jangl_utils.auth import get_token_from_request
 from jangl_utils.backend_api import get_backend_api_session
-from jangl_utils.etc import cache
 from jangl_utils.unique_id import get_unique_id
 
 
@@ -90,12 +89,11 @@ class TimezoneMiddleware(object):
 
 
 class AccountNamesMiddleware(object):
-    CACHE_TIMEOUT = 120
 
     def process_request(self, request):
-        request.buyer_names = self.get_buyer_names(request) or {}
-        request.vendor_names = self.get_vendor_names(request) or {}
-        request.affiliate_names = self.get_affiliate_names(request) or {}
+        request.buyer_names = self.get_buyer_names(request)
+        request.vendor_names = self.get_vendor_names(request)
+        request.affiliate_names = self.get_affiliate_names(request)
 
         def get_buyer_name(self, buyer_id):
             if buyer_id in self.buyer_names:
@@ -115,29 +113,18 @@ class AccountNamesMiddleware(object):
 
     # TODO: make these lazy
     def get_buyer_names(self, request):
-        if hasattr(request, 'account') and request.account.is_staff:
-            return self.get_names(request, 'buyers')
+        return self.get_names(request, 'buyers')
 
     def get_vendor_names(self, request):
-        if hasattr(request, 'account') and request.account.is_staff:
-            return self.get_names(request, 'vendors')
+        return self.get_names(request, 'vendors')
 
     def get_affiliate_names(self, request):
-        if hasattr(request, 'account') and request.account.is_staff:
-            return self.get_names(request, 'affiliates')
+        return self.get_names(request, 'affiliates')
 
     def get_names(self, request, account_type):
-        if cache:
-            key = 'names:{}:{}'.format(request.site.id, account_type)
-            response = cache.get(key)
-            if response is None:
-                response = self._fetch_names(request, account_type)
-                cache.set(key, response, self.CACHE_TIMEOUT)
-            return response
-        else:
-            return self._fetch_names(request, account_type)
-
-    def _fetch_names(self, request, account_type):
-        response = request.backend_api.get(('accounts', account_type, 'names'))
-        if response.ok:
-            return {a['id']: a for a in response.json()}
+        if hasattr(request, 'account') and request.account.is_staff:
+            response = request.backend_api.get(('accounts', account_type, 'names'),
+                                               cache_seconds=3600, cache_refresh=30)
+            if response.ok:
+                return {a['id']: a for a in response.json()}
+        return {}

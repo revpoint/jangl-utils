@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='jangl-utils',
-    version='0.7.16',
+    version='0.7.17',
     packages=find_packages(),
     package_data={'jangl_utils': ['templates/bootstrap/*']},
     install_requires=[

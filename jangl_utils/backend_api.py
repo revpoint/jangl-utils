@@ -3,6 +3,7 @@ import urllib
 from types import MethodType
 from cachetools.keys import hashkey
 from django.conf import settings as django_settings
+from django.core.cache import caches
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import six
 from django.utils.timezone import now as tz_now, pytz
@@ -124,7 +125,7 @@ class CachedBackendAPISession(BackendAPISession):
         cache_seconds = kwargs.pop('cache_seconds', 0)
         if cache_seconds:
             backend_api_cache = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
-            cache = django_settings.CACHES.get(backend_api_cache)
+            cache = caches[backend_api_cache].get(backend_api_cache)
             if cache:
                 cache_key = get_hash_key(self.get_host_headers(), self.cookies.get_dict(), *args, **kwargs)
                 result = cache.get(cache_key)

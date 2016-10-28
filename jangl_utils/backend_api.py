@@ -153,4 +153,4 @@ def get_backend_api_session(**kwargs):
 def get_hash_key(*args, **kwargs):
     args = [tuple(sorted(a.items())) if isinstance(a, dict) else a for a in args]
     kwargs = dict([(k, tuple(sorted(v.items()))) if isinstance(v, dict) else (k, v) for (k, v) in kwargs.iteritems()])
-    return hashkey(*args, **kwargs)
+    return 'backend_api:{}'.format(hash(hashkey(*args, **kwargs)))

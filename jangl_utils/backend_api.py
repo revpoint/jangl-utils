@@ -130,8 +130,10 @@ class CachedBackendAPISession(BackendAPISession):
     def request(self, *args, **kwargs):
         cache_seconds = kwargs.pop('cache_seconds', 0)
         cache_refresh = kwargs.pop('cache_refresh', None)
+        cache_use_headers = kwargs.pop('cache_use_headers', frozenset(['auth', 'cookies', 'host', 'site_id']))
         if cache_seconds and not DISABLE_BACKEND_API_CACHE:
-            cache_key = self.get_cache_key(*args, **kwargs)
+            headers = self.get_cache_headers(cache_use_headers)
+            cache_key = self.get_cache_key(headers, *args, **kwargs)
             result = cache.get(cache_key)
 
             # If cache miss, refresh cache
@@ -151,17 +153,19 @@ class CachedBackendAPISession(BackendAPISession):
         return result
 
     def get_cache_key(self, *args, **kwargs):
-        args = make_hashable((self.get_host_headers(), self.cookies.get_dict()) + args)
+        args = make_hashable(args)
         kwargs = dict(make_hashable(kwargs))
         hash_key = '{}'.format(_HashedTuple(args + sum(sorted(kwargs.items()), (None,))))
         return 'backend_api:{}'.format(hashlib.sha1(hash_key).hexdigest())
 
-    def get_host_headers(self):
-        return {
+    def get_cache_headers(self, use_headers):
+        headers = {
             'auth': self.headers.get('Authorization'),
+            'cookies': self.cookies.get_dict(),
             'host': self.headers.get('Host'),
             'site_id': self.headers.get('X-Site-ID'),
         }
+        return dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
 
 
 def get_backend_api_session(**kwargs):

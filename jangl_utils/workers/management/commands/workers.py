@@ -9,28 +9,26 @@ class Command(BaseCommand):
     args = '<worker_name worker_name ...>'
 
     def handle(self, *worker_names, **options):
-        if worker_names:
-            workers = [w.spawn() for w in self.find_workers()
-                       if w.worker_name in worker_names]
-        else:
-            workers = [w.spawn() for w in self.find_workers()]
-
+        workers = [w.spawn() for w in find_workers(worker_names)]
         if not workers:
             raise CommandError('Could not find workers')
         try:
-            gevent.joinall(workers)
-        except (KeyboardInterrupt, SystemExit):
+            gevent.joinall(workers, raise_error=True)
+        except:
             gevent.killall(workers)
-        finally:
-            gevent.sleep(10)
 
-    def find_workers(self):
-        for app in settings.INSTALLED_APPS:
-            if app.startswith('jangl_utils'):
-                continue
-            package = '{0}.workers'.format(app)
-            try:
-                import_module(package)
-            except ImportError:
-                pass
-        return worker_registry.registered
+
+def find_workers(worker_names):
+    for app in settings.INSTALLED_APPS:
+        if app.startswith('jangl_utils'):
+            continue
+        package = '{0}.workers'.format(app)
+        try:
+            import_module(package)
+        except ImportError:
+            pass
+
+    workers = worker_registry.registered
+    if worker_names:
+        workers = [w for w in workers if w.worker_name in worker_names]
+    return workers

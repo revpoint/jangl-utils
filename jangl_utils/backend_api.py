@@ -126,14 +126,13 @@ class CachedBackendAPISession(BackendAPISession):
         if cache_seconds:
             backend_api_cache = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
             cache = caches[backend_api_cache]
-            if cache:
-                cache_key = get_hash_key(self.get_host_headers(), self.cookies.get_dict(), *args, **kwargs)
-                result = cache.get(cache_key)
-                if result is not None:
-                    return result
-                result = self.get_request(*args, **kwargs)
-                cache.set(cache_key, result, cache_seconds)
+            cache_key = get_hash_key(self.get_host_headers(), self.cookies.get_dict(), *args, **kwargs)
+            result = cache.get(cache_key)
+            if result is not None:
                 return result
+            result = self.get_request(*args, **kwargs)
+            cache.set(cache_key, result, cache_seconds)
+            return result
         return self.get_request(*args, **kwargs)
 
     def get_host_headers(self):

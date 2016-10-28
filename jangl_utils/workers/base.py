@@ -37,11 +37,13 @@ class BaseWorker(object):
         gevent.signal(signal.SIGTERM, self.thread.kill)
 
     def run(self):
+        # Wrap main try block to catch failed attempt and call teardown before next attempt
         try:
-            # Wrap main try block to catch failed attempt and call teardown before next attempt
-            try:
-                logger.info('run: attempt %d - %s', self.attempt, gevent.getcurrent())
+            logger.info('run: attempt %d - %s', self.attempt, gevent.getcurrent())
+            with sentry.capture_on_error():
                 self.setup()
+
+            try:
                 while True:
                     self.handle()
             except (KeyboardInterrupt, SystemExit, gevent.GreenletExit):

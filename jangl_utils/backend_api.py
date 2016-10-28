@@ -1,9 +1,10 @@
+import hashlib
 import logging
 import urllib
 from types import MethodType
 
 import gevent
-from cachetools.keys import hashkey
+from cachetools.keys import _HashedTuple
 from django.conf import settings as django_settings
 from django.core.cache import caches
 from django.core.serializers.json import DjangoJSONEncoder
@@ -152,8 +153,8 @@ class CachedBackendAPISession(BackendAPISession):
     def get_cache_key(self, *args, **kwargs):
         args = make_hashable((self.get_host_headers(), self.cookies.get_dict()) + args)
         kwargs = dict(make_hashable(kwargs))
-        hash_key = hashkey(*args, **kwargs)
-        return 'backend_api:{}'.format(hash(hash_key))
+        hash_key = '{}'.format(_HashedTuple(args + sum(sorted(kwargs.items()), (None,))))
+        return 'backend_api:{}'.format(hashlib.sha1(hash_key).hexdigest())
 
     def get_host_headers(self):
         return {

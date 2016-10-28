@@ -58,7 +58,8 @@ class BaseWorker(object):
                     raise
             finally:
                 logger.warning('tearing down greenlet %s', gevent.getcurrent())
-                self.teardown()
+                with sentry.capture_on_error(raise_error=False):
+                    self.teardown()
 
         except WorkerAttemptFailed, exc:
             self.wait()

@@ -1,6 +1,8 @@
 import logging
 import urllib
 from types import MethodType
+
+import gevent
 from cachetools.keys import hashkey
 from django.conf import settings as django_settings
 from django.core.cache import caches
@@ -14,6 +16,9 @@ from jangl_utils.etc.json import _datetime_decoder
 
 
 logger = logging.getLogger(__name__)
+
+backend_api_cache = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
+cache = caches[backend_api_cache]
 
 
 def get_service_url(service, *args, **kwargs):
@@ -118,22 +123,28 @@ class BackendAPISession(requests.Session):
 
 
 class CachedBackendAPISession(BackendAPISession):
-    def get_request(self, *args, **kwargs):
-        return super(CachedBackendAPISession, self).request(*args, **kwargs)
-
     def request(self, *args, **kwargs):
         cache_seconds = kwargs.pop('cache_seconds', 0)
+        cache_refresh = kwargs.pop('cache_refresh', None)
         if cache_seconds:
-            backend_api_cache = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
-            cache = caches[backend_api_cache]
             cache_key = self.get_cache_key(*args, **kwargs)
             result = cache.get(cache_key)
-            if result is not None:
-                return result
-            result = self.get_request(*args, **kwargs)
-            cache.set(cache_key, result, cache_seconds)
+
+            # If cache miss, refresh cache
+            if result is None:
+                result = self.refresh_cache(cache_key, cache_seconds, *args, **kwargs)
+
+            # If cache hit and passed refresh timer, refresh cache in background
+            elif cache_refresh is not None and cache_refresh < (cache_seconds - (cache.ttl(cache_key) or 0)):
+                gevent.spawn(self.refresh_cache, cache_key, cache_seconds, *args, **kwargs)
+
             return result
-        return self.get_request(*args, **kwargs)
+        return super(CachedBackendAPISession, self).request(*args, **kwargs)
+
+    def refresh_cache(self, cache_key, cache_seconds, *args, **kwargs):
+        result = super(CachedBackendAPISession, self).request(*args, **kwargs)
+        cache.set(cache_key, result, cache_seconds)
+        return result
 
     def get_cache_key(self, *args, **kwargs):
         args = make_hashable((self.get_host_headers(), self.cookies.get_dict()) + args)

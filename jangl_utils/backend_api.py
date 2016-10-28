@@ -126,7 +126,7 @@ class CachedBackendAPISession(BackendAPISession):
         if cache_seconds:
             backend_api_cache = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
             cache = caches[backend_api_cache]
-            cache_key = get_hash_key(self.get_host_headers(), self.cookies.get_dict(), *args, **kwargs)
+            cache_key = self.get_cache_key(*args, **kwargs)
             result = cache.get(cache_key)
             if result is not None:
                 return result
@@ -135,11 +135,17 @@ class CachedBackendAPISession(BackendAPISession):
             return result
         return self.get_request(*args, **kwargs)
 
+    def get_cache_key(self, *args, **kwargs):
+        args = make_hashable((self.get_host_headers(), self.cookies.get_dict()) + args)
+        kwargs = dict(make_hashable(kwargs))
+        hash_key = hashkey(*args, **kwargs)
+        return 'backend_api:{}'.format(hash(hash_key))
+
     def get_host_headers(self):
         return {
-            'site_id': self.headers.get('X-Site-ID'),
-            'host': self.headers.get('Host'),
             'auth': self.headers.get('Authorization'),
+            'host': self.headers.get('Host'),
+            'site_id': self.headers.get('X-Site-ID'),
         }
 
 
@@ -150,7 +156,9 @@ def get_backend_api_session(**kwargs):
     return api_session
 
 
-def get_hash_key(*args, **kwargs):
-    args = [tuple(sorted(a.items())) if isinstance(a, dict) else a for a in args]
-    kwargs = dict([(k, tuple(sorted(v.items()))) if isinstance(v, dict) else (k, v) for (k, v) in kwargs.iteritems()])
-    return 'backend_api:{}'.format(hash(hashkey(*args, **kwargs)))
+def make_hashable(value):
+    if hasattr(value, 'iteritems'):
+        return tuple(sorted([(k, make_hashable(v)) for k, v in value.iteritems()]))
+    if isinstance(value, (list, tuple)):
+        return tuple([make_hashable(v) for v in value])
+    return value

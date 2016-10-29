@@ -130,31 +130,40 @@ class CachedBackendAPISession(BackendAPISession):
     cache_methods = ['GET', 'OPTIONS', 'HEAD']
     cache_use_headers = ['auth', 'cookies', 'host', 'site_id']
 
-    def request(self, method, *args, **kwargs):
-        cache_seconds = kwargs.pop('cache_seconds', 0)
-        cache_refresh = kwargs.pop('cache_refresh', None)
-        cache_methods = kwargs.pop('cache_methods', None)
-        cache_use_headers = kwargs.pop('cache_use_headers', None)
-        if cache_methods is None:
-            cache_methods = self.cache_methods
-        if cache_use_headers is None:
-            cache_use_headers = self.cache_use_headers
-
-        if cache_seconds and method in cache_methods and not DISABLE_BACKEND_API_CACHE:
-            headers = self.get_cache_headers(cache_use_headers, site_id=kwargs.get('site_id'))
-            cache_key = self.get_cache_key(headers, method, *args, **kwargs)
+    def request(self, *args, **kwargs):
+        is_cachable, cache_key, cache_seconds, cache_refresh = self.get_cache_vars(args, kwargs)
+        if is_cachable:
             result = cache.get(cache_key)
 
             # If cache miss, refresh cache
             if result is None:
-                result = self.refresh_cache(cache_key, cache_seconds, method, *args, **kwargs)
+                result = self.refresh_cache(cache_key, cache_seconds, *args, **kwargs)
 
             # If cache hit and passed refresh timer, refresh cache in background
             elif cache_refresh is not None and cache_refresh < (cache_seconds - (cache.ttl(cache_key) or 0)):
-                gevent.spawn(self.refresh_cache, cache_key, cache_seconds, method, *args, **kwargs)
+                gevent.spawn(self.refresh_cache, cache_key, cache_seconds, *args, **kwargs)
 
             return result
-        return super(CachedBackendAPISession, self).request(method, *args, **kwargs)
+        return super(CachedBackendAPISession, self).request(*args, **kwargs)
+
+    def get_cache_vars(self, args, kwargs):
+        cache_seconds = kwargs.pop('cache_seconds', 0)
+        cache_refresh = kwargs.pop('cache_refresh', None)
+        cache_methods = kwargs.pop('cache_methods', None)
+        use_headers = kwargs.pop('cache_use_headers', None)
+        extra_headers = kwargs.pop('cache_extra_headers', {})
+
+        if cache_methods is None:
+            cache_methods = self.cache_methods
+        if use_headers is None:
+            use_headers = self.cache_use_headers
+        if extra_headers is None:
+            extra_headers = {}
+
+        is_cachable = not DISABLE_BACKEND_API_CACHE and args[0] in cache_methods and cache_seconds
+        cache_headers = self.get_cache_headers(use_headers, **extra_headers)
+        cache_key = self.get_cache_key(cache_headers, *args, **kwargs)
+        return is_cachable, cache_key, cache_seconds, cache_refresh
 
     def refresh_cache(self, cache_key, cache_seconds, *args, **kwargs):
         result = super(CachedBackendAPISession, self).request(*args, **kwargs)
@@ -165,16 +174,20 @@ class CachedBackendAPISession(BackendAPISession):
         args = make_hashable(args)
         kwargs = dict(make_hashable(kwargs))
         hash_key = '{}'.format(_HashedTuple(args + sum(sorted(kwargs.items()), (None,))))
-        return 'backend_api:{}'.format(hashlib.sha1(hash_key).hexdigest())
+        hashed = hashlib.sha1(hash_key).hexdigest()
+        logger.debug('hashing key for {} - {}'.format(hash_key, hashed))
+        return 'backend_api:{}'.format(hashed)
 
-    def get_cache_headers(self, use_headers, site_id=None):
+    def get_cache_headers(self, use_headers, **extra_headers):
         headers = {
             'auth': self.headers.get('Authorization'),
             'cookies': self.cookies.get_dict(),
             'host': self.headers.get('Host'),
-            'site_id': site_id or self.headers.get('X-Site-ID'),
+            'site_id': self.headers.get('X-Site-ID'),
         }
-        return dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
+        headers = dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
+        headers.update(extra_headers)
+        return headers
 
 
 def get_backend_api_session(**kwargs):

@@ -185,9 +185,8 @@ class CachedBackendAPISession(BackendAPISession):
             'host': self.headers.get('Host'),
             'site_id': self.headers.get('X-Site-ID'),
         }
-        headers = dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
         headers.update(extra_headers)
-        return headers
+        return dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
 
 
 def get_backend_api_session(**kwargs):

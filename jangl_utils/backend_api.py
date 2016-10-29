@@ -130,28 +130,27 @@ class CachedBackendAPISession(BackendAPISession):
     cache_methods = ['GET', 'OPTIONS', 'HEAD']
     cache_use_headers = ['auth', 'cookies', 'host', 'site_id']
 
-    def request(self, *args, **kwargs):
+    def request(self, method, *args, **kwargs):
         cache_seconds = kwargs.pop('cache_seconds', None) or 0
         cache_refresh = kwargs.pop('cache_refresh', None)
         cache_methods = kwargs.pop('cache_methods', None) or self.cache_methods
         cache_use_headers = kwargs.pop('cache_use_headers', None) or self.cache_use_headers
 
-        method = args[0]
         if cache_seconds and method in cache_methods and not DISABLE_BACKEND_API_CACHE:
             headers = self.get_cache_headers(cache_use_headers, site_id=kwargs.get('site_id'))
-            cache_key = self.get_cache_key(headers, *args, **kwargs)
+            cache_key = self.get_cache_key(headers, method, *args, **kwargs)
             result = cache.get(cache_key)
 
             # If cache miss, refresh cache
             if result is None:
-                result = self.refresh_cache(cache_key, cache_seconds, *args, **kwargs)
+                result = self.refresh_cache(cache_key, cache_seconds, method, *args, **kwargs)
 
             # If cache hit and passed refresh timer, refresh cache in background
             elif cache_refresh is not None and cache_refresh < (cache_seconds - (cache.ttl(cache_key) or 0)):
-                gevent.spawn(self.refresh_cache, cache_key, cache_seconds, *args, **kwargs)
+                gevent.spawn(self.refresh_cache, cache_key, cache_seconds, method, *args, **kwargs)
 
             return result
-        return super(CachedBackendAPISession, self).request(*args, **kwargs)
+        return super(CachedBackendAPISession, self).request(method, *args, **kwargs)
 
     def refresh_cache(self, cache_key, cache_seconds, *args, **kwargs):
         result = super(CachedBackendAPISession, self).request(*args, **kwargs)

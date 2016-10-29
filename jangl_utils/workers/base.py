@@ -7,9 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 class WorkerAttemptFailed(Exception):
-    def __init__(self, worker_class, attempt):
+    def __init__(self, worker_class, attempt, original_exc):
         self.worker_class = worker_class
         self.attempt = attempt
+        self.original_exc = original_exc
 
     def attempt_worker(self):
         return self.worker_class.spawn(attempt=self.attempt).get()
@@ -32,30 +33,32 @@ class BaseWorker(object):
         self.kwargs = kwargs
         self.logger = logger
 
+    def __repr__(self):
+        return '<worker.{worker_name} - Attempt: {attempt}>'.format(
+            worker_name=self.worker_name or self.__class__.__name__,
+            attempt=self.attempt,
+        )
+
     def start(self):
         self.thread = gevent.spawn(self.run)
         gevent.signal(signal.SIGTERM, self.thread.kill)
 
     def run(self):
+        logger.info('run: attempt %d - %s', self.attempt, gevent.getcurrent())
         # Wrap main try block to catch failed attempt and call teardown before next attempt
         try:
-            logger.info('run: attempt %d - %s', self.attempt, gevent.getcurrent())
-            with sentry.capture_on_error():
-                self.setup()
-
             try:
+                self.setup()
                 while True:
                     self.handle()
             except (KeyboardInterrupt, SystemExit, gevent.GreenletExit):
                 logger.warning('greenlet exit %s', gevent.getcurrent())
-            except:
-                logger.error('Unrecoverable error %s', gevent.getcurrent(), exc_info=True)
+            except Exception as exc:
+                logger.error('Unrecoverable error %s: %r', gevent.getcurrent(), exc, exc_info=True)
                 sentry.captureException()
-
                 if self.attempt < self.max_attempts:
-                    raise WorkerAttemptFailed(self.__class__, self.attempt)
-                else:
-                    raise
+                    exc = WorkerAttemptFailed(self.__class__, self.attempt, original_exc=exc)
+                raise exc
             finally:
                 logger.warning('tearing down greenlet %s', gevent.getcurrent())
                 with sentry.capture_on_error(raise_error=False):

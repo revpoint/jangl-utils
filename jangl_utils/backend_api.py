@@ -131,10 +131,14 @@ class CachedBackendAPISession(BackendAPISession):
     cache_use_headers = ['auth', 'cookies', 'host', 'site_id']
 
     def request(self, method, *args, **kwargs):
-        cache_seconds = kwargs.pop('cache_seconds', None) or 0
+        cache_seconds = kwargs.pop('cache_seconds', 0)
         cache_refresh = kwargs.pop('cache_refresh', None)
-        cache_methods = kwargs.pop('cache_methods', None) or self.cache_methods
-        cache_use_headers = kwargs.pop('cache_use_headers', None) or self.cache_use_headers
+        cache_methods = kwargs.pop('cache_methods', None)
+        cache_use_headers = kwargs.pop('cache_use_headers', None)
+        if cache_methods is None:
+            cache_methods = self.cache_methods
+        if cache_use_headers is None:
+            cache_use_headers = self.cache_use_headers
 
         if cache_seconds and method in cache_methods and not DISABLE_BACKEND_API_CACHE:
             headers = self.get_cache_headers(cache_use_headers, site_id=kwargs.get('site_id'))

@@ -161,8 +161,11 @@ class CachedBackendAPISession(BackendAPISession):
             extra_headers = {}
 
         is_cachable = not DISABLE_BACKEND_API_CACHE and args[0] in cache_methods and cache_seconds
-        cache_headers = self.get_cache_headers(use_headers, **extra_headers)
-        cache_key = self.get_cache_key(cache_headers, *args, **kwargs)
+        if is_cachable:
+            cache_headers = self.get_cache_headers(use_headers, **extra_headers)
+            cache_key = self.get_cache_key(cache_headers, *args, **kwargs)
+        else:
+            cache_key = None
         return is_cachable, cache_key, cache_seconds, cache_refresh
 
     def refresh_cache(self, cache_key, cache_seconds, *args, **kwargs):

@@ -160,7 +160,9 @@ class CachedBackendAPISession(BackendAPISession):
         if extra_headers is None:
             extra_headers = {}
 
-        is_cachable = not DISABLE_BACKEND_API_CACHE and args[0] in cache_methods and cache_seconds
+        method = args[0].upper()
+
+        is_cachable = not DISABLE_BACKEND_API_CACHE and method in cache_methods and cache_seconds
         if is_cachable:
             cache_headers = self.get_cache_headers(use_headers, **extra_headers)
             cache_key = self.get_cache_key(cache_headers, *args, **kwargs)

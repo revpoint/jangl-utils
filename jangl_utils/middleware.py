@@ -75,6 +75,14 @@ class BackendAPIMiddleware(object):
 
         request.backend_api = api_session
 
+    def process_response(self, request, response):
+        if hasattr(request, 'backend_api'):
+            try:
+                request.backend_api.close()
+            finally:
+                pass
+        return response
+
 
 class TimezoneMiddleware(object):
     def process_request(self, request):

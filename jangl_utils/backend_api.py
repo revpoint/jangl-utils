@@ -172,7 +172,8 @@ class CachedBackendAPISession(BackendAPISession):
 
     def refresh_cache(self, cache_key, cache_seconds, *args, **kwargs):
         result = super(CachedBackendAPISession, self).request(*args, **kwargs)
-        cache.set(cache_key, result, cache_seconds)
+        if result.ok:
+            cache.set(cache_key, result, cache_seconds)
         return result
 
     def get_cache_key(self, *args, **kwargs):

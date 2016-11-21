@@ -27,8 +27,8 @@ def _datetime_decoder(dict_):
         except (ValueError, TypeError):
             try:
                 date_obj = datetime.datetime.strptime(value, DATE_FMT)
-                if settings.USE_TZ:
-                    date_obj = make_aware_local(date_obj)
+                # if settings.USE_TZ:
+                #     date_obj = make_aware_local(date_obj)
                 dict_[key] = date_obj.date()
             except (ValueError, TypeError):
                 continue

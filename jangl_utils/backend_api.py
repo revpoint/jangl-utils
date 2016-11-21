@@ -12,11 +12,24 @@ from django.utils import six
 from django.utils.timezone import now as tz_now, pytz
 from json import dumps as to_json
 import requests
-from jangl_utils import settings
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3 import Retry
+from jangl_utils import settings, VERSION
 from jangl_utils.etc.json import _datetime_decoder
 
 
 logger = logging.getLogger(__name__)
+
+BACKEND_USER_AGENT = 'JanglBackendAPI/{}'.format(VERSION)
+BACKEND_CONTENT_TYPE = 'application/json'
+
+MAX_ASYNC_POOLS = 10
+MAX_ASYNC_POOL_CONNECTIONS = 25
+MAX_RETRIES = Retry(3, backoff_factor=0.1)
+
+adapter = HTTPAdapter(pool_connections=MAX_ASYNC_POOLS,
+                      pool_maxsize=MAX_ASYNC_POOL_CONNECTIONS,
+                      max_retries=MAX_RETRIES)
 
 
 def get_service_url(service, *args, **kwargs):
@@ -197,7 +210,12 @@ class CachedBackendAPISession(BackendAPISession):
 
 def get_backend_api_session(**kwargs):
     api_session = CachedBackendAPISession()
-    api_session.headers['Content-Type'] = 'application/json'
+    api_session.mount('http://', adapter)
+    api_session.mount('https://', adapter)
+    api_session.headers.update({
+        'Content-Type': BACKEND_CONTENT_TYPE,
+        'User-Agent': BACKEND_USER_AGENT,
+    })
     api_session.update_session_headers(**kwargs)
     return api_session
 

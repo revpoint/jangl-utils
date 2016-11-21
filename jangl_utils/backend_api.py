@@ -27,10 +27,6 @@ MAX_ASYNC_POOLS = 100
 MAX_ASYNC_POOL_CONNECTIONS = 100
 MAX_RETRIES = Retry(3, backoff_factor=0.1)
 
-adapter = HTTPAdapter(pool_connections=MAX_ASYNC_POOLS,
-                      pool_maxsize=MAX_ASYNC_POOL_CONNECTIONS,
-                      max_retries=MAX_RETRIES)
-
 
 def get_service_url(service, *args, **kwargs):
     service_url = 'http://{0}:{1}/{2}'.format(settings.SERVICES_BACKEND_HOST,
@@ -210,6 +206,9 @@ class CachedBackendAPISession(BackendAPISession):
 
 def get_backend_api_session(**kwargs):
     api_session = CachedBackendAPISession()
+    adapter = HTTPAdapter(pool_connections=MAX_ASYNC_POOLS,
+                          pool_maxsize=MAX_ASYNC_POOL_CONNECTIONS,
+                          max_retries=MAX_RETRIES)
     api_session.mount('http://', adapter)
     api_session.mount('https://', adapter)
     api_session.headers.update({

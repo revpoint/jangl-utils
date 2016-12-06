@@ -29,7 +29,7 @@ class KafkaConsumerWorker(BaseWorker):
         self.set_topic()
 
     def teardown(self):
-        self.consumer.stop()
+        self.consumer.close()
 
     def get_topic_name(self):
         if self.topic_name is None:

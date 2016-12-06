@@ -1,6 +1,8 @@
 
+DEFAULT_FORMAT_STRING = '%(log_color)s%(levelname)-8s %(name)s | %(message)s'
 
-def generate_colorlog_settings(project_name, verbose=False, extra_packages=None,
+
+def generate_colorlog_settings(project_name, verbose=False, extra_packages=None, format_string=None,
                                project_level='INFO', extra_level='WARNING', verbose_level='DEBUG'):
     project_level = verbose_level if verbose else project_level
     extra_level = verbose_level if verbose else extra_level
@@ -15,7 +17,7 @@ def generate_colorlog_settings(project_name, verbose=False, extra_packages=None,
         'formatters': {
             'color': {
                 '()': 'colorlog.ColoredFormatter',
-                'format': '%(log_color)s%(levelname)-8s %(name)s - %(message)s'
+                'format': format_string or DEFAULT_FORMAT_STRING
             },
         },
         'handlers': {

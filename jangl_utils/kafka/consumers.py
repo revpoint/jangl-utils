@@ -19,6 +19,7 @@ class KafkaConsumerWorker(BaseWorker):
     consumer_settings = {}
     commit_on_complete = True
     async_commit = True
+    poll_timeout = 1.0
     timestamp_fields = ['timestamp']
     decimal_fields = []
     boolean_fields = []
@@ -108,7 +109,7 @@ class KafkaConsumerWorker(BaseWorker):
             logger.error('commit error: {} - {}'.format(err, partitions))
 
     def handle(self):
-        message = self.consumer.poll(timeout=1.0)
+        message = self.consumer.poll(timeout=self.poll_timeout)
 
         if message is not None:
             if message.error():

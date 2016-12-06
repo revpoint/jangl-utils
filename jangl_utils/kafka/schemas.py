@@ -9,9 +9,9 @@ class Schema(object):
     schema_avro = None
     schema_version = None
 
-    def __init__(self, client, subject, local_schema=None):
-        self.schema_client = client.schema_client
-        self.serializer = client.serializer
+    def __init__(self, producer, subject, local_schema=None):
+        self.serializer = producer.serializer
+        self.schema_client = producer.serializer.registry_client
         self.subject = subject
         self.local_schema = self.parse_json(local_schema)
 

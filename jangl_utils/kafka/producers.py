@@ -1,109 +1,139 @@
 import logging
-from time import mktime
-
-import gevent
 from confluent.schemaregistry.client import CachedSchemaRegistryClient
 from confluent.schemaregistry.serializers import MessageSerializer
+from confluent_kafka import Producer as _Producer, KafkaError, KafkaException
 from datetime import datetime
-from pykafka import KafkaClient
-from pykafka.exceptions import SocketDisconnectedError, ProduceFailureError, ProducerStoppedException
-from pykafka.partitioners import hashing_partitioner, random_partitioner
-from pytz import utc
+from django.utils.timezone import now as tz_now
+import signal
+from time import mktime
+from jangl_utils import sentry
 from jangl_utils.backend_api import get_service_url
-from jangl_utils.kafka import settings, exceptions
+from jangl_utils.kafka import settings
 from jangl_utils.kafka.schemas import Schema
+from jangl_utils.kafka.utils import generate_client_settings
 
 logger = logging.getLogger(__name__)
 
 
-def tz_now():
-    return datetime.utcnow().replace(tzinfo=utc)
-
-
 class Producer(object):
+    """Kafka message producer with avro schema registry support
+
+    Requires the following configuration:
+    - topic_name: The kafka topic name which to produce the messages
+    - key_schema: The Avro schema file to encode the message key
+    - value_schema: The Avro schema file to encode the message value
+
+    Optional:
+    - producer_name: The group name used for monitoring the producer
+    - producer_settings: A dict of kafka settings to overwrite the defaults
+    - has_key: Whether or not the topic has a key
+    - async: Messages are queued if async is True, otherwise messages send immediately
+    - poll_wait: The amount of time to wait for a response if queue is full
+
+    Methods:
+    - send_message: Sends a single message to Kafka
+        send_message(key, message)
+        send_message(message)
+
+    - send_messages: Sends a batch of messages to Kafka
+        send_messages([(key1, message1), (key2, message2)])
+        send_messages([message1, message2])
+
+    - get_timestamp: Will return a kafka-ready timestamp integer, defaults to now
+    """
     topic_name = None
-    has_key = False
-    partitioner = lambda self, *args: random_partitioner(*args)
     key_schema = None
     value_schema = None
-    async = True
-    async_wait = 100
-    num_retry_attempts = 3
-    retry_backoff_ms = 200
-    client_settings = {'use_greenlets': True}
+    producer_name = None
     producer_settings = {}
+    has_key = False
+    async = True
+    poll_wait = 1
 
     def __init__(self, **kwargs):
-        # Set kafka url and client
-        broker_url = kwargs.get('broker_url') or self.get_broker_url()
+        self.kwargs = kwargs
+        self.producer = _Producer(**self.get_producer_settings())
+        self.serializer = self.get_message_serializer()
+        self.topic_name = self.get_topic_name()
+        self.key_schema = self.get_key_schema()
+        self.value_schema = self.get_value_schema()
+        signal.signal(signal.SIGTERM, self._flush)
+
+    def get_producer_settings(self):
+        broker_url = self.get_broker_url()
         logger.debug('connecting to kafka with url: ' + broker_url)
-        self.kafka_client = KafkaClient(hosts=broker_url, **self.client_settings)
 
-        # Set topic name
-        topic_name = kwargs.get('topic_name') or self.get_topic_name()
-        logger.debug('set kafka topic to: ' + topic_name)
+        producer_name = self.get_producer_name()
+        logger.debug('using group id: ' + producer_name)
 
-        # Set topic
-        assert topic_name in self.kafka_client.topics, \
-            'Cannot find kafka topic "{0}". Please create topic.'.format(topic_name)
-        self.topic = self.kafka_client.topics[topic_name]
-
-        # Set producer
-        self.partitioner = kwargs.get('partitioner') or self.get_partitioner()
-
-        # Set schema registry
-        schema_registry_url = kwargs.get('schema_registry_url') or self.get_schema_registry_url()
-        logger.debug('loading schema registry with url: ' + schema_registry_url)
-        self.schema_client = CachedSchemaRegistryClient(url=schema_registry_url)
-        self.serializer = MessageSerializer(self.schema_client)
-
-        # Set key schema
-        if self.has_key:
-            key_schema = kwargs.get('key_schema') or self.get_key_schema()
-            self.key_schema = Schema(self, self.get_key_schema_name(), key_schema)
-
-        # Set value schema
-        value_schema = kwargs.get('value_schema') or self.get_value_schema()
-        self.value_schema = Schema(self, self.get_value_schema_name(), value_schema)
-
-        self._producer = self.get_producer()
+        initial_settings = {
+            'api.version.request': True,
+            'broker.version.fallback': '0.9.0',
+            'client.id': 'JanglProducer',
+            'bootstrap.servers': broker_url,
+            'group.id': producer_name,
+            'default.topic.config': {
+                'request.required.acks': 1,
+                'request.timeout.ms': 5000,
+                'message.timeout.ms': 60000,
+                'produce.offset.report': False,
+            },
+            'queue.buffering.max.messages': 100000,
+            'queue.buffering.max.ms': 1000,
+            'message.send.max.retries': 2,
+            'retry.backoff.ms': 100,
+            'compression.codec': 'none',
+            'batch.num.messages': 1000,
+            'delivery.report.only.error': False,
+        }
+        return generate_client_settings(initial_settings, self.producer_settings)
 
     def get_topic_name(self):
-        if self.topic_name is None:
+        topic_name = self.kwargs.get('topic_name') or self.topic_name
+        if topic_name is None:
             raise NotImplementedError
-        return self.topic_name
+        return topic_name
 
     def get_broker_url(self):
-        broker_url = settings.BROKER_URL
+        broker_url = self.kwargs.get('broker_url') or settings.BROKER_URL
         if broker_url is None:
             raise NotImplementedError
         return broker_url
 
+    def get_producer_name(self):
+        producer_name = self.kwargs.get('producer_name') or self.producer_name
+        if producer_name is None:
+            producer_name = self.__class__.__name__
+        return producer_name
+
+    def get_message_serializer(self):
+        schema_registry_url = self.get_schema_registry_url()
+        logger.debug('loading schema registry: ' + schema_registry_url)
+        schema_client = CachedSchemaRegistryClient(url=schema_registry_url)
+        return MessageSerializer(schema_client)
+
     def get_schema_registry_url(self):
-        schema_microservice = settings.SCHEMA_MICROSERVICE
+        schema_microservice = self.kwargs.get('schema_registry_microservice') or settings.SCHEMA_MICROSERVICE
         if schema_microservice:
-            schema_registry_url = get_service_url(schema_microservice)
-        else:
-            schema_registry_url = settings.SCHEMA_REGISTRY_URL
+            return get_service_url(schema_microservice)
+
+        schema_registry_url = self.kwargs.get('schema_registry_url') or settings.SCHEMA_REGISTRY_URL
         if schema_registry_url is None:
             raise NotImplementedError
         return schema_registry_url
 
-    def get_key_schema_name(self):
-        return self.get_topic_name() + '-key'
-
-    def get_value_schema_name(self):
-        return self.get_topic_name() + '-value'
-
     def get_key_schema(self):
-        return self.key_schema
+        if self.has_key:
+            return Schema(self, self.get_key_schema_name(), self.key_schema)
 
     def get_value_schema(self):
-        return self.value_schema
+        return Schema(self, self.get_value_schema_name(), self.value_schema)
 
-    def get_partitioner(self):
-        partitioner = self.partitioner
-        return lambda *args: partitioner(*args)
+    def get_key_schema_name(self):
+        return self.kwargs.get('key_schema') or (self.get_topic_name() + '-key')
+
+    def get_value_schema_name(self):
+        return self.kwargs.get('value_schema') or (self.get_topic_name() + '-value')
 
     def get_timestamp(self, timestamp=None):
         if timestamp is None:
@@ -112,53 +142,56 @@ class Producer(object):
             timestamp = mktime(timestamp.timetuple()) + (timestamp.microsecond / 1e6)
         return timestamp
 
-    def get_producer(self):
-        get_producer = self.topic.get_producer if self.async else self.topic.get_sync_producer
-        return get_producer(partitioner=self.partitioner, linger_ms=self.async_wait,
-                            **self.producer_settings)
+    def send_messages(self, messages, **kwargs):
+        """ Send a batch of messages to kafka
 
-    def produce(self, *args, **kwargs):
-        for i in range(self.num_retry_attempts):
-            try:
-                self._producer.produce(*args, **kwargs)
-            except (SocketDisconnectedError, ProduceFailureError, ProducerStoppedException), e:
-                self._producer.stop()
-                self._producer = self.get_producer()
-                logger.warn('Producer error on {}: {}'.format(self.get_topic_name(), e))
-                gevent.sleep(i * (self.retry_backoff_ms / 1000.0))
-            else:
-                break
+        If the topic has a key, this method will accept only a list of (key, message) tuples:
+        - self.send_message([(key, message), (key, message), ...], **kwargs)
 
-    def send_messages(self, messages):
-        for message in messages:
-            self.send_message(message)
+        If the topic does not have a key, this method will only accept a list of messages:
+        - self.send_message([message, message, ...], **kwargs)
+
+        Accepts the following kwargs:
+        - async: If async is False, producer will send the batch of messages immediately
+        - partition: The partition id to produce to
+        - callback: Delivery callback with signature on_delivery(err,msg)
+        """
+        async = kwargs.pop('async', self.async)
+        try:
+            for message in messages:
+                self.send_message(message, async=True, **kwargs)
+        finally:
+            if not async:
+                self._flush()
 
     def send_message(self, *args, **kwargs):
         """ Send a message to kafka
 
         If the topic has a key, this method accepts the following signatures:
-        - self.send_message(key, message)
-        - self.send_message((key, message))
-        - self.send_message([key, message])
-        - self.send_message(key='', message='')
+        - self.send_message(key, message, **kwargs)
+        - self.send_message((key, message), **kwargs)
+        - self.send_message(key='', message='', **kwargs)
 
         If the topic does not have a key, this method accepts:
-        - self.send_message(message)
+        - self.send_message(message, **kwargs)
 
+        Accepts the following kwargs:
+        - async: If async is False, producer will send message immediately
+        - partition: The partition id to produce to
+        - callback: Delivery callback with signature on_delivery(err,msg)
         """
+        async = kwargs.pop('async', self.async)
+
         if self.has_key:
-            if len(args) == 2:
+            if len(args) == 0:
+                key = kwargs.pop('key')
+                message = kwargs.pop('message')
+            elif len(args) == 1:  # [(key, message)]
+                key, message = args[0]
+            elif len(args) == 2:  # [key, message]
                 key, message = args
-            elif len(args) == 1:
-                try:
-                    key, message = args[0]
-                except ValueError:
-                    raise exceptions.MissingKeyError
-            elif 'key' in kwargs and 'message' in kwargs:
-                key = kwargs['key']
-                message = kwargs['message']
             else:
-                raise exceptions.InvalidDataError
+                raise ValueError('Invalid message format')
 
             logger.debug('key: ' + str(key))
             logger.debug('message: ' + str(message))
@@ -169,7 +202,7 @@ class Producer(object):
             logger.debug('encoded key: ' + str(encoded_key))
             logger.debug('encoded message: ' + str(encoded_message))
 
-            self.produce(encoded_message, partition_key=encoded_key)
+            self._produce(encoded_message, key=encoded_key, **kwargs)
 
         elif len(args) == 1:
             message = args[0]
@@ -178,12 +211,27 @@ class Producer(object):
             encoded_message = self.value_schema.encode_message(message)
             logger.debug('encoded message: ' + str(encoded_message))
 
-            self.produce(encoded_message)
+            self._produce(encoded_message, **kwargs)
 
         else:
-            raise exceptions.InvalidDataError
+            raise ValueError('Invalid message format')
+
+        if not async:
+            self._flush()
+
+    def _produce(self, value, key=None, **kwargs):
+        try:
+            self.producer.produce(self.topic_name, value, key, **kwargs)
+        except KafkaException as exc:
+            logger.error('producer failed: {}'.format(exc))
+            sentry.captureException()
+        except BufferError:
+            self.producer.poll(self.poll_wait)
+            self._produce(value, key, **kwargs)
+
+    def _flush(self):
+        self.producer.flush()
 
 
 class HashedPartitionProducer(Producer):
     has_key = True
-    partitioner = hashing_partitioner

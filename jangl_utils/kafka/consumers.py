@@ -7,6 +7,7 @@ import logging
 from pytz import utc
 from jangl_utils.backend_api import get_service_url
 from jangl_utils.kafka import settings
+from jangl_utils.kafka.utils import generate_client_settings
 from jangl_utils.workers import BaseWorker
 
 logger = logging.getLogger(__name__)
@@ -59,26 +60,19 @@ class KafkaConsumerWorker(BaseWorker):
         consumer_name = self.get_consumer_name()
         logger.debug('using group id: ' + consumer_name)
 
-        consumer_settings = {
+        initial_settings = {
+            'api.version.request': True,
+            'broker.version.fallback': '0.9.0',
+            'client.id': 'JanglConsumer',
             'bootstrap.servers': broker_url,
-            'default.topic.config': {'auto.offset.reset': 'earliest'},
             'group.id': consumer_name,
+            'default.topic.config': {'auto.offset.reset': 'earliest'},
             'enable.auto.commit': False,
             'on_commit': self.on_commit,
-            'session.timeout.ms': 6000,
+            'session.timeout.ms': 10000,
+            'heartbeat.interval.ms': 1000,
         }
-
-        for key, val in self.consumer_settings.iteritems():
-            if val is None:
-                continue
-            if '.' not in key:
-                continue
-            logger.debug('using setting {}: {}'.format(key, val))
-            if key.startswith('topic.'):
-                consumer_settings['default.topic.config'][key[6:]] = val
-            else:
-                consumer_settings[key] = val
-        return consumer_settings
+        return generate_client_settings(initial_settings, self.consumer_settings)
 
     def get_message_serializer(self):
         schema_registry_url = self.get_schema_registry_url()

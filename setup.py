@@ -9,6 +9,7 @@ setup(
         'boto',
         'bumpversion',
         'cachetools',
+        'colorlog',
         'django-storages',
         'djangorestframework',
         'prettyconf',

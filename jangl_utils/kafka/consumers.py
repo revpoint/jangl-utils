@@ -126,6 +126,7 @@ class KafkaConsumerWorker(BaseWorker):
 
                 if self.commit_on_complete:
                     self.commit()
+            self.done()
         else:
             self.wait()
 

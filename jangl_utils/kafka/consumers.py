@@ -19,7 +19,7 @@ class KafkaConsumerWorker(BaseWorker):
     consumer_settings = {}
     commit_on_complete = True
     async_commit = True
-    poll_timeout = 1.0
+    poll_timeout = 0.001
     timestamp_fields = ['timestamp']
     decimal_fields = []
     boolean_fields = []

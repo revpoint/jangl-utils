@@ -119,6 +119,8 @@ def get_default_account(user):
         return 'buyer-{0}'.format(user.buyers[0]['id'])
     if len(user.vendors):
         return 'vendor-{0}'.format(user.vendors[0]['id'])
+    if len(user.affiliates):
+        return 'affiliates-{0}'.format(user.vendors[0]['id'])
     return 'signup'
 
 

@@ -274,6 +274,8 @@ class CurrentAccount(object):
             account = _get_by_id(user.buyers, self.id)
         elif self.is_vendor:
             account = _get_by_id(user.vendors, self.id)
+        elif self.is_affiliate:
+            account = _get_by_id(user.affiliates, self.id)
 
         if account is None:
             raise AccountNotFound

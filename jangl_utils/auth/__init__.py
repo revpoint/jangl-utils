@@ -120,7 +120,7 @@ def get_default_account(user):
     if len(user.vendors):
         return 'vendor-{0}'.format(user.vendors[0]['id'])
     if len(user.affiliates):
-        return 'affiliates-{0}'.format(user.vendors[0]['id'])
+        return 'affiliate-{0}'.format(user.vendors[0]['id'])
     return 'signup'
 
 

@@ -1,7 +1,6 @@
 import logging
 import types
 
-import uwsgi
 from django.http import HttpResponse
 from django.utils import timezone
 import pytz as pytz
@@ -10,6 +9,11 @@ from jangl_utils.auth import get_token_from_request
 from jangl_utils.backend_api import get_backend_api_session
 from jangl_utils.unique_id import get_unique_id
 
+try:
+    import uwsgi
+except ImportError:
+    uwsgi = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +21,8 @@ logger = logging.getLogger(__name__)
 class HealthCheckMiddleware(object):
     def process_request(self, request):
         if request.path_info == '/_hc':
-            uwsgi.set_logvar('cid', 'null')
+            if uwsgi:
+                uwsgi.set_logvar('cid', 'null')
             return HttpResponse(content_type='text/plain')
 
 
@@ -50,7 +55,8 @@ class CorrelationIDMiddleware(object):
         else:
             request.cid = get_unique_id()
             request.propagate_response = False
-        uwsgi.set_logvar('cid', str(request.cid))
+        if uwsgi:
+            uwsgi.set_logvar('cid', str(request.cid))
 
     def process_response(self, request, response):
         if hasattr(request, 'propagate_response') and request.propagate_response:

@@ -193,23 +193,25 @@ class Producer(object):
             else:
                 raise ValueError('Invalid message format')
 
-            logger.debug('key: ' + str(key))
-            logger.debug('message: ' + str(message))
+            logger.info('### Sending kafka message ###\n'
+                        'key: {}\n'
+                        'message: {}'.format(key, message))
 
             encoded_key = self.key_schema.encode_message(key)
             encoded_message = self.value_schema.encode_message(message)
 
-            logger.debug('encoded key: ' + str(encoded_key))
-            logger.debug('encoded message: ' + str(encoded_message))
+            logger.debug('key encoded w/ schema #{}: {}'.format(self.key_schema.schema_id, encoded_key))
+            logger.debug('message encoded w/ schema #{}: {}'.format(self.value_schema.schema_id, encoded_message))
 
             self._produce(encoded_message, key=encoded_key, **kwargs)
 
         elif len(args) == 1:
             message = args[0]
-            logger.debug('message: ' + str(message))
+            logger.info('### Sending kafka message ###\n'
+                        'message: {}'.format(message))
 
             encoded_message = self.value_schema.encode_message(message)
-            logger.debug('encoded message: ' + str(encoded_message))
+            logger.debug('message encoded w/ schema #{}: {}'.format(self.value_schema.schema_id, encoded_message))
 
             self._produce(encoded_message, **kwargs)
 

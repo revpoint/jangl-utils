@@ -1,15 +1,25 @@
 
-DEFAULT_FORMAT_STRING = '%(log_color)s%(levelname)-8s %(name)s | %(message)s'
+DEFAULT_FORMAT_STRING = '%(log_color)s%(levelname)-8s %(asctime)s%(reset)s | %(message)s'
 
 
-def generate_colorlog_settings(project_name, verbose=False, extra_packages=None, format_string=None, use_color=False,
-                               project_level='INFO', extra_level='WARNING', verbose_level='DEBUG'):
-    project_level = verbose_level if verbose else project_level
-    extra_level = verbose_level if verbose else extra_level
+def generate_colorlog_settings(project_name, verbose=False, extra_packages=(),
+                               format_string=None, use_color=False,
+                               project_level='INFO', extra_level='WARNING',
+                               verbose_project_level='DEBUG', verbose_extra_level='INFO'):
+    if verbose:
+        project_level = verbose_project_level
+        extra_level = verbose_extra_level
+
+    def extra_with_level(extra):
+        try:
+            package, level = extra
+        except (ValueError, TypeError):
+            package = extra
+            level = extra_level
+        return package, level
 
     packages = [(project_name, project_level), ('jangl_utils', extra_level)]
-    if extra_packages is not None:
-        packages += [(package, extra_level) for package in extra_packages]
+    packages += [extra_with_level(package) for package in extra_packages]
 
     return {
         'version': 1,

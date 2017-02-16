@@ -90,20 +90,15 @@ class BackendAPISession(requests.Session):
                 headers = {}
             headers['X-Site-ID'] = str(site_id)
 
-        cid = ' [{}]'.format(self.session_cid) if self.session_cid else ''
-        logger.info('{0}{1} API REQUEST - {2} {3}'.format(tz_now(), cid,
-                                                          method.upper(), url))
-        if data:
-            logger.debug(data)
+        self._log('request', method.upper(), url)
+        self._debug(data)
 
         response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
                                                           files, auth, timeout, allow_redirects, proxies,
                                                           hooks, stream, verify, cert, json)
 
-        logger.info('{0}{1} API RESPONSE - {2} {3}'.format(tz_now(), cid,
-                                                           response.status_code, response.url))
-        if response.text:
-            logger.debug(response.text)
+        self._log('response', response.status_code, response.url)
+        self._debug(response.text)
 
         return response
 
@@ -128,6 +123,14 @@ class BackendAPISession(requests.Session):
         if cookies:
             requests.utils.add_dict_to_cookiejar(self.cookies, cookies)
 
+    def _log(self, log_type, *args):
+        cid = '[{}] '.format(self.session_cid) if self.session_cid else ''
+        logger.info('{}API {} - {}', cid, log_type.upper(), ' '.join(args))
+
+    def _debug(self, data):
+        if data:
+            logger.debug(data)
+
 
 DISABLE_BACKEND_API_CACHE = getattr(django_settings, 'DISABLE_BACKEND_API_CACHE', settings.DISABLE_BACKEND_API_CACHE)
 if not DISABLE_BACKEND_API_CACHE:
@@ -142,17 +145,23 @@ class CachedBackendAPISession(BackendAPISession):
     def request(self, *args, **kwargs):
         is_cachable, cache_key, cache_seconds, cache_refresh = self.get_cache_vars(args, kwargs)
         if is_cachable:
-            result = cache.get(cache_key)
+            response = cache.get(cache_key)
 
             # If cache miss, refresh cache
-            if result is None:
-                result = self.refresh_cache(cache_key, cache_seconds, *args, **kwargs)
+            if response is None:
+                response = self.refresh_cache(cache_key, cache_seconds, *args, **kwargs)
 
-            # If cache hit and passed refresh timer, refresh cache in background
-            elif cache_refresh is not None and cache_refresh < (cache_seconds - (cache.ttl(cache_key) or 0)):
-                gevent.spawn(self.refresh_cache, cache_key, cache_seconds, *args, **kwargs)
+            else:
+                self._log('cache hit', response.url)
+                self._debug(response.text)
 
-            return result
+                # If cache hit and passed refresh timer, refresh cache in background
+                cache_ttl = cache.ttl(cache_key) or 0
+                if cache_refresh is not None and cache_refresh < (cache_seconds - cache_ttl):
+                    self._log('cache refresh', 'TTL:', cache_ttl)
+                    gevent.spawn(self.refresh_cache, cache_key, cache_seconds, *args, **kwargs)
+
+            return response
         return super(CachedBackendAPISession, self).request(*args, **kwargs)
 
     def get_cache_vars(self, args, kwargs):
@@ -180,17 +189,16 @@ class CachedBackendAPISession(BackendAPISession):
         return is_cachable, cache_key, cache_seconds, cache_refresh
 
     def refresh_cache(self, cache_key, cache_seconds, *args, **kwargs):
-        result = super(CachedBackendAPISession, self).request(*args, **kwargs)
-        if result.ok:
-            cache.set(cache_key, result, cache_seconds)
-        return result
+        response = super(CachedBackendAPISession, self).request(*args, **kwargs)
+        if response.ok:
+            cache.set(cache_key, response, cache_seconds)
+        return response
 
     def get_cache_key(self, *args, **kwargs):
         args = make_hashable(args)
         kwargs = dict(make_hashable(kwargs))
         hash_key = '{}'.format(_HashedTuple(args + sum(sorted(kwargs.items()), (None,))))
         hashed = hashlib.sha1(hash_key).hexdigest()
-        logger.debug('hashing key for {} - {}'.format(hash_key, hashed))
         return 'backend_api:{}'.format(hashed)
 
     def get_cache_headers(self, use_headers, **extra_headers):
@@ -204,16 +212,20 @@ class CachedBackendAPISession(BackendAPISession):
         return dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
 
 
-def get_backend_api_session(**kwargs):
-    api_session = CachedBackendAPISession()
-    adapter = HTTPAdapter(pool_connections=MAX_ASYNC_POOLS,
-                          pool_maxsize=MAX_ASYNC_POOL_CONNECTIONS,
-                          max_retries=MAX_RETRIES)
+def get_backend_api_session(cached=True, **kwargs):
+    if cached:
+        api_session = CachedBackendAPISession()
+    else:
+        api_session = BackendAPISession()
+
+    adapter = HTTPAdapter(pool_connections=kwargs.pop('max_async_pools', MAX_ASYNC_POOLS),
+                          pool_maxsize=kwargs.pop('max_async_pool_connections', MAX_ASYNC_POOL_CONNECTIONS),
+                          max_retries=kwargs.pop('max_retries', MAX_RETRIES))
     api_session.mount('http://', adapter)
     api_session.mount('https://', adapter)
     api_session.headers.update({
-        'Content-Type': BACKEND_CONTENT_TYPE,
-        'User-Agent': BACKEND_USER_AGENT,
+        'Content-Type': kwargs.pop('backend_content_type', BACKEND_CONTENT_TYPE),
+        'User-Agent': kwargs.pop('backend_user_agent', BACKEND_USER_AGENT),
     })
     api_session.update_session_headers(**kwargs)
     return api_session

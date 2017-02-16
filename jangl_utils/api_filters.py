@@ -1,9 +1,13 @@
 import operator
+import re
 import six
 from django.db import models
 from rest_framework.compat import distinct
 from rest_framework.filters import BaseFilterBackend
 from rest_framework.settings import api_settings
+
+
+NON_ALPHANUMERIC = re.compile(r'[^\w\d]')
 
 
 class BackendAPISearchFilter(BaseFilterBackend):
@@ -39,26 +43,20 @@ class BackendAPISearchFilter(BaseFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         search_terms = self.get_search_terms(request)
-        search_text_fields = getattr(view, 'search_text_fields', None)
-        search_int_fields = getattr(view, 'search_int_fields', None)
+        search_text_fields = getattr(view, 'search_text_fields', [])
+        search_int_fields = getattr(view, 'search_int_fields', [])
         search_field_lookup = getattr(view, 'search_field_lookup', None)
         search_api_url = getattr(view, 'search_api_url', None)
 
         if not search_terms:
             return queryset
 
-        if search_text_fields:
-            text_lookups = [
-                self.construct_text_search(six.text_type(search_field))
-                for search_field in search_text_fields
-            ]
-
         base = queryset
 
         # First check all integer fields and return if matches
         int_queries = []
         for int_field in search_int_fields:
-            values = [search_term for search_term in search_terms if search_term.isnumeric()]
+            values = filter(lambda x: x.isnumeric(), search_terms)
             if values:
                 int_queries += [
                     models.Q(**{'{}__in'.format(int_field): values})
@@ -66,15 +64,21 @@ class BackendAPISearchFilter(BaseFilterBackend):
 
         if int_queries:
             int_queryset = queryset.filter(reduce(operator.or_, int_queries))
-            if int_queryset.exists():
+            if int_queryset:
                 return int_queryset
 
         # If integer fields return nothing, use text lookup
+        text_lookups = [
+            self.construct_text_search(six.text_type(search_field))
+            for search_field in search_text_fields
+        ]
+
         for search_term in search_terms:
             queries = []
             if search_text_fields:
+                cleaned_search_term = NON_ALPHANUMERIC.sub('', search_term)
                 queries += [
-                    models.Q(**{text_lookup: search_term})
+                    models.Q(**{text_lookup: cleaned_search_term})
                     for text_lookup in text_lookups
                 ]
 

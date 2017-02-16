@@ -125,7 +125,7 @@ class BackendAPISession(requests.Session):
 
     def _log(self, log_type, *args):
         cid = '[{}] '.format(self.session_cid) if self.session_cid else ''
-        logger.info('{}API {} - {}', cid, log_type.upper(), ' '.join(args))
+        logger.info('{}API {} - {}'.format(cid, log_type.upper(), ' '.join(args)))
 
     def _debug(self, data):
         if data:

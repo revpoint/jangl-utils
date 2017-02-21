@@ -5,11 +5,9 @@ from types import MethodType
 
 import gevent
 from cachetools.keys import _HashedTuple
-from django.conf import settings as django_settings
 from django.core.cache import caches
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import six
-from django.utils.timezone import now as tz_now, pytz
 from json import dumps as to_json
 import requests
 from requests.adapters import HTTPAdapter
@@ -129,13 +127,8 @@ class BackendAPISession(requests.Session):
 
     def _debug(self, data):
         if data:
-            logger.debug(data)
-
-
-DISABLE_BACKEND_API_CACHE = getattr(django_settings, 'DISABLE_BACKEND_API_CACHE', settings.DISABLE_BACKEND_API_CACHE)
-if not DISABLE_BACKEND_API_CACHE:
-    BACKEND_API_CACHE = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
-    cache = caches[BACKEND_API_CACHE]
+            log_level = getattr(logging, settings.BACKEND_API_VERBOSE_LOG_LEVEL)
+            logger.log(log_level, data)
 
 
 class CachedBackendAPISession(BackendAPISession):
@@ -145,7 +138,7 @@ class CachedBackendAPISession(BackendAPISession):
     def request(self, *args, **kwargs):
         is_cachable, cache_key, cache_seconds, cache_refresh = self.get_cache_vars(args, kwargs)
         if is_cachable:
-            response = cache.get(cache_key)
+            response = self.cache.get(cache_key)
 
             # If cache miss, refresh cache
             if response is None:
@@ -156,13 +149,17 @@ class CachedBackendAPISession(BackendAPISession):
                 self._debug(response.text)
 
                 # If cache hit and passed refresh timer, refresh cache in background
-                cache_ttl = cache.ttl(cache_key) or 0
+                cache_ttl = self.cache.ttl(cache_key) or 0
                 if cache_refresh is not None and cache_refresh < (cache_seconds - cache_ttl):
                     self._log('cache refresh', 'TTL:', cache_ttl)
                     gevent.spawn(self.refresh_cache, cache_key, cache_seconds, *args, **kwargs)
 
             return response
         return super(CachedBackendAPISession, self).request(*args, **kwargs)
+
+    @property
+    def cache(self):
+        return caches[settings.BACKEND_API_CACHE]
 
     def get_cache_vars(self, args, kwargs):
         cache_seconds = kwargs.pop('cache_seconds', 0)
@@ -180,7 +177,7 @@ class CachedBackendAPISession(BackendAPISession):
 
         method = args[0].upper()
 
-        is_cachable = not DISABLE_BACKEND_API_CACHE and method in cache_methods and cache_seconds
+        is_cachable = method in cache_methods and cache_seconds
         if is_cachable:
             cache_headers = self.get_cache_headers(use_headers, **extra_headers)
             cache_key = self.get_cache_key(cache_headers, *args, **kwargs)
@@ -191,7 +188,7 @@ class CachedBackendAPISession(BackendAPISession):
     def refresh_cache(self, cache_key, cache_seconds, *args, **kwargs):
         response = super(CachedBackendAPISession, self).request(*args, **kwargs)
         if response.ok:
-            cache.set(cache_key, response, cache_seconds)
+            self.cache.set(cache_key, response, cache_seconds)
         return response
 
     def get_cache_key(self, *args, **kwargs):
@@ -212,7 +209,7 @@ class CachedBackendAPISession(BackendAPISession):
         return dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
 
 
-def get_backend_api_session(cached=True, **kwargs):
+def get_backend_api_session(cached=settings.ENABLE_BACKEND_API_CACHE, **kwargs):
     if cached:
         api_session = CachedBackendAPISession()
     else:

@@ -18,7 +18,7 @@ class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
         value = self.clean_value(value)
         with transaction.atomic(using=db, savepoint=False):
             manager.all().delete()
-            manager.model.objects.bulk_create([create_obj(**obj) for obj in value])
+            manager.bulk_create([create_obj(**obj) for obj in value])
 
     def clean_value(self, value):
         if isinstance(value, basestring):
@@ -43,8 +43,8 @@ class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
             return fields[0].attname
 
         raise ValueError('Cannot determine field to save data. Either set the '
-                         'data_field property on the ForeignKey or pass the '
-                         'value as a list of dicts. ex: {field_name: value}.')
+                         'data_field property on the SettableForeignKey or pass '
+                         'the value as a list of dicts. ex: {field_name: value}.')
 
 
 class SettableForeignKey(models.ForeignKey):

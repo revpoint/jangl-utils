@@ -27,5 +27,5 @@ ENABLE_BACKEND_API_CACHE = getattr(django_settings, 'ENABLE_BACKEND_API_CACHE',
                                           cast=casts.Boolean()))
 
 BACKEND_API_CACHE = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
-BACKEND_API_VERBOSE_LOG_LEVEL = getattr(django_settings, 'BACKEND_API_CACHE',
+BACKEND_API_VERBOSE_LOG_LEVEL = getattr(django_settings, 'BACKEND_API_VERBOSE_LOG_LEVEL',
                                         config('BACKEND_API_VERBOSE_LOG_LEVEL', default='DEBUG'))

@@ -18,7 +18,12 @@ class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
         value = self.clean_value(value)
         with transaction.atomic(using=db, savepoint=False):
             manager.all().delete()
-            manager.bulk_create([create_obj(**obj) for obj in value])
+            if getattr(self.related.field, 'bulk_create', None):
+                manager.bulk_create([create_obj(**obj) for obj in value])
+            else:
+                for obj in value:
+                    obj.update(related_kwargs)
+                    manager.create(**obj)
 
     def clean_value(self, value):
         if isinstance(value, basestring):
@@ -52,4 +57,5 @@ class SettableForeignKey(models.ForeignKey):
 
     def __init__(self, *args, **kwargs):
         self.data_field_name = kwargs.pop('data_field', None)
+        self.bulk_create = kwargs.pop('bulk_create', True)
         super(SettableForeignKey, self).__init__(*args, **kwargs)

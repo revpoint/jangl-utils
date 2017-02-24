@@ -18,12 +18,10 @@ class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
         value = self.clean_value(value)
         with transaction.atomic(using=db, savepoint=False):
             manager.all().delete()
-            if getattr(self.related.field, 'bulk_create', None):
+            if getattr(self.related.field, 'bulk_create'):
                 manager.bulk_create([create_obj(**obj) for obj in value])
             else:
-                for obj in value:
-                    obj.update(related_kwargs)
-                    manager.create(**obj)
+                [manager.create(**obj) for obj in value]
 
     def clean_value(self, value):
         if isinstance(value, basestring):

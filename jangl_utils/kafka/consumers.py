@@ -99,9 +99,12 @@ class KafkaConsumerWorker(BaseWorker):
 
     def on_assign(self, consumer, partitions):
         logger.debug('partitions assigned: {}'.format(partitions))
+        consumer.assign(partitions)
 
     def on_revoke(self, consumer, partitions):
         logger.debug('partitions revoked: {}'.format(partitions))
+        consumer.commit(async=False)
+        consumer.unassign()
 
     def on_commit(self, err, partitions):
         if err is None:

@@ -103,7 +103,10 @@ class KafkaConsumerWorker(BaseWorker):
 
     def on_revoke(self, consumer, partitions):
         logger.debug('partitions revoked: {}'.format(partitions))
-        consumer.commit(async=False)
+        try:
+            consumer.commit(async=False)
+        except KafkaException:
+            pass
         consumer.unassign()
 
     def on_commit(self, err, partitions):

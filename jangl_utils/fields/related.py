@@ -13,15 +13,16 @@ class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
         db = router.db_for_write(manager.model, instance=manager.instance)
 
         related_kwargs = {self.related.field.attname: instance.pk}
-        create_obj = partial(manager.model, **related_kwargs)
 
         value = self.clean_value(value)
         with transaction.atomic(using=db, savepoint=False):
             manager.all().delete()
             if getattr(self.related.field, 'bulk_create'):
+                create_obj = partial(manager.model, **related_kwargs)
                 manager.bulk_create([create_obj(**obj) for obj in value])
             else:
-                [manager.create(**obj) for obj in value]
+                create_obj = partial(manager.create, **related_kwargs)
+                [create_obj(**obj) for obj in value]
 
     def clean_value(self, value):
         if isinstance(value, basestring):

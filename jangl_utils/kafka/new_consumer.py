@@ -25,7 +25,7 @@ class KafkaConsumerLoop(object):
     def __init__(self, worker_settings, consumer_settings, topic_name, queue):
         self.worker_settings = worker_settings
         self.consumer_settings = consumer_settings
-        self.consumer = AvroConsumer(**self.consumer_settings)
+        self.consumer = AvroConsumer(self.consumer_settings)
         self.consumer.subscribe([topic_name])
         self.queue = queue
 

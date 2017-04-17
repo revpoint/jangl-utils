@@ -18,7 +18,7 @@ setup(
         'pytz',
     ],
     extras_require={
-        'kafka': ['rpm-confluent-schemaregistry', 'confluent-kafka'],
+        'kafka': ['rpm-confluent-schemaregistry', 'confluent-kafka[avro]', 'gipc'],
         'dev': ['bumpversion', 'fabric', 'pytest-django']
     },
     scripts=['bin/chronos-sync.rb'],

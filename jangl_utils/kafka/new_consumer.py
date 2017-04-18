@@ -24,13 +24,10 @@ class KafkaConsumerLoop(object):
 
     def __init__(self, worker_settings, consumer_settings, topic_name, queue):
         self.worker_settings = worker_settings
-        self.consumer_settings = consumer_settings
-        self.consumer = AvroConsumer(self.consumer_settings)
+        self.enable_commit = not consumer_settings.get('enable.auto.commit')
+        self.consumer = AvroConsumer(consumer_settings)
         self.consumer.subscribe([topic_name])
         self.queue = queue
-
-    def shutdown(self):
-        self.consumer.close()
 
     def run(self):
         while True:
@@ -48,41 +45,18 @@ class KafkaConsumerLoop(object):
                     raise KafkaException(message.error())
 
             else:
-                value = self.parse_message(message.value())
-                self.queue.put(value)
+                # Put message value in the queue
+                self.queue.put(message.value())
 
                 if self.worker_settings['commit_on_complete']:
                     self.commit()
 
-    def commit(self):
-        if not self.consumer_settings.get('enable.auto.commit'):
-            self.consumer.commit(async=self.worker_settings['async_commit'])
+    def shutdown(self):
+        self.consumer.close()
 
-    def parse_message(self, message):
-        for field in self.worker_settings['timestamp_fields']:
-            if field in message:
-                try:
-                    message[field] = datetime.fromtimestamp(message[field], utc)
-                except ValueError:
-                    try:
-                        message[field] = datetime.fromtimestamp(message[field] / 1000, utc)
-                    except TypeError:
-                        pass
-                except TypeError:
-                    pass
-        for field in self.worker_settings['decimal_fields']:
-            if field in message:
-                try:
-                    message[field] = decimal.Decimal(message[field])
-                except (TypeError, decimal.InvalidOperation):
-                    pass
-        for field in self.worker_settings['boolean_fields']:
-            if field in message:
-                try:
-                    message[field] = bool(message[field])
-                except TypeError:
-                    pass
-        return message
+    def commit(self):
+        if self.enable_commit:
+            self.consumer.commit(async=self.worker_settings['async_commit'])
 
 
 class KafkaConsumerWorker(BaseWorker):
@@ -117,9 +91,6 @@ class KafkaConsumerWorker(BaseWorker):
             'async_commit': self.async_commit,
             'poll_timeout': self.poll_timeout,
             'sleep_time': self.sleep_time,
-            'timestamp_fields': self.timestamp_fields,
-            'decimal_fields': self.decimal_fields,
-            'boolean_fields': self.boolean_fields,
         }
 
     def get_consumer_settings(self):
@@ -154,21 +125,46 @@ class KafkaConsumerWorker(BaseWorker):
         return broker_url
 
     def get_schema_registry_url(self):
-        schema_microservice = settings.SCHEMA_MICROSERVICE
-        if schema_microservice:
-            schema_registry_url = get_service_url(schema_microservice)
-        else:
-            schema_registry_url = settings.SCHEMA_REGISTRY_URL
+        schema_registry_url = (get_service_url(settings.SCHEMA_MICROSERVICE)
+                               if settings.SCHEMA_MICROSERVICE else settings.SCHEMA_REGISTRY_URL)
         if schema_registry_url is None:
             raise NotImplementedError
         return schema_registry_url
 
     def handle(self):
-        if self.consumer.is_alive():
-            self.consume_message(self.queue_read.get())
-            self.done()
-        else:
+        # If consumer has died, raise error
+        if not self.consumer.is_alive():
             raise KafkaException(KafkaError._FAIL)
+
+        message = self.parse_message(self.queue_read.get())
+        self.consume_message(message)
+        self.done()
+
+    def parse_message(self, message):
+        for field in self.timestamp_fields:
+            if field in message:
+                try:
+                    message[field] = datetime.fromtimestamp(message[field], utc)
+                except ValueError:
+                    try:
+                        message[field] = datetime.fromtimestamp(message[field] / 1000, utc)
+                    except TypeError:
+                        pass
+                except TypeError:
+                    pass
+        for field in self.decimal_fields:
+            if field in message:
+                try:
+                    message[field] = decimal.Decimal(message[field])
+                except (TypeError, decimal.InvalidOperation):
+                    pass
+        for field in self.boolean_fields:
+            if field in message:
+                try:
+                    message[field] = bool(message[field])
+                except TypeError:
+                    pass
+        return message
 
     def consume_message(self, message):
         pass

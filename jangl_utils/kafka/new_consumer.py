@@ -164,8 +164,11 @@ class KafkaConsumerWorker(BaseWorker):
         return schema_registry_url
 
     def handle(self):
-        self.consume_message(self.queue_read.get())
-        self.done()
+        if self.consumer.is_alive():
+            self.consume_message(self.queue_read.get())
+            self.done()
+        else:
+            raise KafkaException(KafkaError._FAIL)
 
     def consume_message(self, message):
         pass

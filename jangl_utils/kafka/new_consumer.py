@@ -82,8 +82,11 @@ class KafkaConsumerWorker(BaseWorker):
     def teardown(self):
         self.consumer.terminate()
         self.consumer.join()
-        self.queue_read.close()
-        self.queue_write.close()
+        try:
+            self.queue_read.close()
+            self.queue_write.close()
+        except gipc.GIPCClosed:
+            pass
 
     def get_worker_settings(self):
         return {

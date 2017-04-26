@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     package_data={'jangl_utils': ['templates/bootstrap/*']},
     install_requires=[
-        'boto',
+        'boto3',
         'bumpversion',
         'cachetools',
         'colorlog',

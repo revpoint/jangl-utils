@@ -1,9 +1,9 @@
-boto>=2.38.0
+boto3>=1.4.4
 bumpversion>=0.5.3
 cachetools>=2.0.0
 confluent-kafka[avro]
 Django>=1.8,<1.9
-django-storages>=1.1.8
+django-storages>=1.5.2
 djangorestframework>=3.2.1
 gevent
 gipc>=0.6.0

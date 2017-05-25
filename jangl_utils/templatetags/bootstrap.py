@@ -26,14 +26,14 @@ def render_field(bound_field, show_label, template):
 
     if isinstance(widget, forms.RadioSelect):
         input_type = 'radio'
+    elif isinstance(widget, forms.CheckboxSelectMultiple):
+        input_type = 'multi_checkbox'
     elif isinstance(widget, forms.Select):
         input_type = 'select'
     elif isinstance(widget, forms.Textarea):
         input_type = 'textarea'
     elif isinstance(widget, forms.CheckboxInput):
         input_type = 'checkbox'
-    elif isinstance(widget, forms.CheckboxSelectMultiple):
-        input_type = 'multi_checkbox'
     elif isinstance(widget, (forms.FileInput)):
         input_type = 'file'
     elif issubclass(type(widget), forms.MultiWidget):

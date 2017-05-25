@@ -15,6 +15,9 @@
                 {% render_widget bound_field %}
             </div>
         {% endif %}
+        {% if input_type == "multi_checkbox" %}
+            {% render_widget bound_field %}
+        {% endif %}
         {% if input_type == "radio" %}
             {% for value, name in bound_field.field.choices %}
                 {% if value %}

@@ -32,6 +32,8 @@ def render_field(bound_field, show_label, template):
         input_type = 'textarea'
     elif isinstance(widget, forms.CheckboxInput):
         input_type = 'checkbox'
+    elif isinstance(widget, forms.CheckboxSelectMultiple):
+        input_type = 'multi_checkbox'
     elif isinstance(widget, (forms.FileInput)):
         input_type = 'file'
     elif issubclass(type(widget), forms.MultiWidget):

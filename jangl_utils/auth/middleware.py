@@ -27,7 +27,7 @@ def get_cached_account(request):
 
 def get_cached_site(request):
     if not hasattr(request, '_cached_site'):
-        request._cached_site = get_site_from_request(request)
+        request._cached_site = get_site_from_request(request, request.META.get('HTTP_X_SITE_ID'))
     return request._cached_site
 
 

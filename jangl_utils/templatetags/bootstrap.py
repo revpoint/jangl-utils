@@ -78,7 +78,7 @@ def as_vertical_form(obj, show_label=True):
 def as_display_form(obj, show_label=True):
     form = as_bootstrap(obj=obj, show_label=show_label,
                         template=TEMPLATE_DISPLAY)
-    return mark_safe('<div class="form-horizontal">{}</div>'.format(form))
+    return mark_safe(u'<div class="form-horizontal">{}</div>'.format(form))
 
 
 @register.simple_tag

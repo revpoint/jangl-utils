@@ -1,10 +1,13 @@
+-i https://rpm:5U9GQ18muJgJ@pypi.jangl.com/pypi/
+avro==1.8.2-jangl
 boto3>=1.4.4
 bumpversion>=0.5.3
 cachetools>=2.0.0
 confluent-kafka[avro]
 Django>=1.8,<1.9
-django-storages>=1.5.2
+django-storages==1.6.3
 djangorestframework>=3.2.1
+fastavro>=0.14.7
 gevent
 gipc>=0.6.0
 prettyconf==1.2.0

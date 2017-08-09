@@ -15,6 +15,7 @@ def bump(version='patch'):
     # Version should be either: major, minor, patch
     venv_local('bumpversion {0} --list'.format(version))
     local('git push')
+    local('git push --tags')
 
 
 @task
@@ -31,6 +32,7 @@ def check_pypirc():
 def push_to_pypi():
     check_pypirc()
     local('python setup.py sdist upload -r jangl')
+    local('python setup.py bdist_wheel upload -r jangl')
 
 @task
 def push():

@@ -6,6 +6,12 @@ from jangl_utils import sentry
 logger = logging.getLogger(__name__)
 
 
+def kill_all_workers(*args):
+    global _KILL_ALL_WORKERS
+    _KILL_ALL_WORKERS = True
+_KILL_ALL_WORKERS = False
+
+
 class WorkerAttemptFailed(Exception):
     def __init__(self, worker_class, attempt, original_exc):
         self.worker_class = worker_class
@@ -20,6 +26,7 @@ class BaseWorker(object):
     sleep_time = 5
     max_attempts = 3
     worker_name = None
+    ready = None
 
     @classmethod
     def spawn(cls, **kwargs):
@@ -41,18 +48,25 @@ class BaseWorker(object):
 
     def start(self):
         self.thread = gevent.spawn(self.run)
-        gevent.signal(signal.SIGTERM, self.thread.kill)
+        gevent.signal(signal.SIGTERM, kill_all_workers)
 
     def run(self):
         logger.info('run: attempt %d - %s', self.attempt, gevent.getcurrent())
         # Wrap main try block to catch failed attempt and call teardown before next attempt
         try:
             try:
+                if self.ready is not None:
+                    logger.info('{} setup waiting'.format(self.__class__.__name__))
+                    while not self.ready():
+                        self.wait()
+                        logger.info('{} setup ready'.format(self.__class__.__name__))
                 self.setup()
                 while True:
                     self.handle()
+                    if _KILL_ALL_WORKERS:
+                        break
             except (KeyboardInterrupt, SystemExit, gevent.GreenletExit):
-                logger.warning('greenlet exit %s', gevent.getcurrent())
+                pass
             except Exception as exc:
                 logger.error('Unrecoverable error %s: %r', gevent.getcurrent(), exc, exc_info=True)
                 sentry.captureException()

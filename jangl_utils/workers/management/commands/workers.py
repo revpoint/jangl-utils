@@ -1,8 +1,9 @@
-from importlib import import_module
+import importlib
+import gevent
 from django.conf import settings
 from django.core.management import BaseCommand, CommandError
-import gevent
-from jangl_utils.workers.base import worker_registry
+
+from jangl_utils.workers.base import worker_registry, kill_all_workers
 
 
 class Command(BaseCommand):
@@ -15,7 +16,7 @@ class Command(BaseCommand):
         try:
             gevent.joinall(workers, raise_error=True)
         except:
-            gevent.killall(workers)
+            kill_all_workers()
 
 
 def find_workers(worker_names):
@@ -24,7 +25,7 @@ def find_workers(worker_names):
             continue
         package = '{0}.workers'.format(app)
         try:
-            import_module(package)
+            importlib.import_module(package)
         except ImportError:
             pass
 

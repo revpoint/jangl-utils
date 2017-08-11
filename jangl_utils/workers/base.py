@@ -6,12 +6,6 @@ from jangl_utils import sentry
 logger = logging.getLogger(__name__)
 
 
-def kill_all_workers(*args):
-    global _KILL_ALL_WORKERS
-    _KILL_ALL_WORKERS = True
-_KILL_ALL_WORKERS = False
-
-
 class WorkerAttemptFailed(Exception):
     def __init__(self, worker_class, attempt, original_exc):
         self.worker_class = worker_class
@@ -23,10 +17,11 @@ class WorkerAttemptFailed(Exception):
 
 
 class BaseWorker(object):
-    sleep_time = 5
+    sleep_time = 0.1
     max_attempts = 3
     worker_name = None
     ready = None
+    thread = None
 
     @classmethod
     def spawn(cls, **kwargs):
@@ -41,10 +36,7 @@ class BaseWorker(object):
         self.logger = logger
 
     def __repr__(self):
-        return '<worker.{worker_name} - Attempt: {attempt}>'.format(
-            worker_name=self.worker_name or self.__class__.__name__,
-            attempt=self.attempt,
-        )
+        return '<{} - Attempt: {}>'.format(self.__class__.__name__, self.attempt)
 
     def start(self):
         self.thread = gevent.spawn(self.run)
@@ -59,7 +51,7 @@ class BaseWorker(object):
                     logger.info('{} setup waiting'.format(self.__class__.__name__))
                     while not self.ready():
                         self.wait()
-                        logger.info('{} setup ready'.format(self.__class__.__name__))
+                    logger.info('{} setup ready'.format(self.__class__.__name__))
                 self.setup()
                 while True:
                     self.handle()
@@ -98,6 +90,12 @@ class BaseWorker(object):
         pass
 
 
+def kill_all_workers(*args):
+    global _KILL_ALL_WORKERS
+    _KILL_ALL_WORKERS = True
+_KILL_ALL_WORKERS = False
+
+
 class WorkerRegistry(object):
     registered = []
 
@@ -108,5 +106,10 @@ class WorkerRegistry(object):
 
     def unregister(self, section):
         self.registered.remove(section)
+
+
+def register_worker(cls):
+    worker_registry.register(cls)
+    return cls
 
 worker_registry = WorkerRegistry()

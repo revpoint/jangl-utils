@@ -32,7 +32,7 @@ class KafkaWorker(BaseWorker):
     def get_consumer_settings(self):
         initial = {
             'group.id': self.get_consumer_name(),
-            'default.topic.config': {'auto.offset.reset': 'earliest'},
+            'default.topic.config': {'auto.offset.reset': 'latest'},
             'enable.auto.commit': False,
             'bootstrap.servers': utils.get_broker_url(),
             'schema.registry.url': utils.get_schema_registry_url(),

@@ -37,7 +37,7 @@ class BaseWorker(object):
 
     def start(self):
         self.thread = gevent.spawn(self.run)
-        gevent.signal(signal.SIGTERM, kill_all_workers)
+        setup_kill_signals()
 
     def run(self):
         logger.info('run: attempt %d - %s', self.attempt, gevent.getcurrent())
@@ -91,6 +91,16 @@ def kill_all_workers(*args):
     global _KILL_ALL_WORKERS
     _KILL_ALL_WORKERS = True
 _KILL_ALL_WORKERS = False
+
+
+def setup_kill_signals():
+    if _signals_already_setup:
+        return
+    gevent.signal(signal.SIGTERM, kill_all_workers)
+    gevent.signal(signal.SIGINT, kill_all_workers)
+    global _signals_already_setup
+    _signals_already_setup = True
+_signals_already_setup = False
 
 
 class WorkerRegistry(object):

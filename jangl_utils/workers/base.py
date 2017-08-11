@@ -1,9 +1,6 @@
 import gevent
-import logging
 import signal
-from jangl_utils import sentry
-
-logger = logging.getLogger(__name__)
+from jangl_utils import logger, sentry
 
 
 class WorkerAttemptFailed(Exception):

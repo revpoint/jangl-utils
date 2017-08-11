@@ -3,14 +3,12 @@ from confluent.schemaregistry.serializers import MessageSerializer
 from confluent_kafka import Consumer, KafkaError, KafkaException
 from datetime import datetime
 import decimal
-import logging
 from pytz import utc
+from jangl_utils import logger
 from jangl_utils.backend_api import get_service_url
 from jangl_utils.kafka import settings
 from jangl_utils.kafka.utils import generate_client_settings
 from jangl_utils.workers import BaseWorker
-
-logger = logging.getLogger(__name__)
 
 
 class KafkaConsumerWorker(BaseWorker):

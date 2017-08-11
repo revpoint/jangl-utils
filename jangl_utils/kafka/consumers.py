@@ -9,7 +9,7 @@ class KafkaWorker(BaseWorker):
     topic_name = None
     consumer_name = None
     consumer_settings = {}
-    commit_on_complete = True
+    commit_on_complete = False
     async_commit = True
     poll_timeout = 0
     consumer = None
@@ -65,7 +65,7 @@ class KafkaWorker(BaseWorker):
             if message.error().code() == KafkaError._PARTITION_EOF:
                 self.partition_eof(message)
 
-            elif message.error():
+            else:
                 raise KafkaException(message.error())
 
         else:
@@ -97,3 +97,7 @@ class StartAtEndKafkaWorker(KafkaWorker):
     def setup(self):
         super(StartAtEndKafkaWorker, self).setup()
         self.reset_consumer_offsets(OFFSET_END)
+
+
+# For compatibility
+KafkaConsumerWorker = KafkaConsumerWorker

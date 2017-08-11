@@ -1,4 +1,3 @@
-import logging
 from confluent.schemaregistry.client import CachedSchemaRegistryClient
 from confluent.schemaregistry.serializers import MessageSerializer
 from confluent_kafka import Producer as _Producer, KafkaError, KafkaException
@@ -6,13 +5,11 @@ from datetime import datetime
 from django.utils.timezone import now as tz_now
 import signal
 from time import mktime
-from jangl_utils import sentry
+from jangl_utils import logger, sentry
 from jangl_utils.backend_api import get_service_url
 from jangl_utils.kafka import settings
 from jangl_utils.kafka.schemas import Schema
 from jangl_utils.kafka.utils import generate_client_settings
-
-logger = logging.getLogger(__name__)
 
 
 class Producer(object):

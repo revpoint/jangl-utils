@@ -9,7 +9,7 @@ try:
 except ImportError:
     import StringIO
 
-logger = logging.getLogger(__name__)
+from jangl_utils import logger
 
 
 def log_cprofile(func=None, action='stats', head=20, sample_rate=None, sort='cumulative',

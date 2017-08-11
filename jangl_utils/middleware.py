@@ -1,4 +1,3 @@
-import logging
 import types
 
 from django.http import HttpResponse
@@ -13,9 +12,6 @@ try:
     import uwsgi
 except ImportError:
     uwsgi = None
-
-
-logger = logging.getLogger(__name__)
 
 
 class HealthCheckMiddleware(object):

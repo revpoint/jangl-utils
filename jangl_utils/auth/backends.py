@@ -11,7 +11,6 @@ class JWTAuthBackend(object):
             token = login_request.json().get('token')
             return token
 
-        if raise_validation:
-            if login_request.status_code == 400:
-                error = login_request.json().values()[0]
-                raise ValidationError(error)
+        if raise_validation and login_request.status_code == 400:
+            error = login_request.json().values()[0]
+            raise ValidationError(error)

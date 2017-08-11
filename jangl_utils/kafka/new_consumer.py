@@ -3,14 +3,12 @@ from confluent_kafka.avro import AvroConsumer
 from datetime import datetime
 import decimal
 import gipc
-import logging
 from pytz import utc
 
+from jangl_utils import logger
 from jangl_utils.backend_api import get_service_url
 from jangl_utils.kafka import settings, utils
 from jangl_utils.workers import BaseWorker
-
-logger = logging.getLogger(__name__)
 
 
 class KafkaConsumerLoop(object):

@@ -2,6 +2,7 @@ from django.utils import six
 from django.utils.encoding import force_text
 from django.utils.functional import allow_lazy
 from django.utils.safestring import mark_safe, SafeText
+import decimal
 import unicodedata
 import re
 
@@ -19,22 +20,42 @@ def slugify(value):
 slugify = allow_lazy(slugify, six.text_type, SafeText)
 
 
-def format_percent(num):
-    if not num:
-        return '-'
-    return '{:0.2f}%'.format(num)
+def _clean_number(value):
+    if isinstance(value, (str, unicode)):
+        try:
+            value = decimal.Decimal(value)
+        except decimal.InvalidOperation:
+            pass
+    return value
 
 
-def format_dollars(num):
-    if not num:
-        return '-'
-    return '${:0.2f}'.format(num)
+def format_percent(value):
+    if value is None:
+        return ''
+    return '{:0.2f}%'.format(value)
 
 
-def format_time(num):
-    if not num:
-        return '-'
-    num = int(num)
-    mins = num / 60
-    secs = num % 60
-    return '{:01d}:{:02d}'.format(mins, secs)
+def format_dollars(value):
+    if value is None:
+        return ''
+
+    value = _clean_number(value)
+    if isinstance(value, (int, float, decimal.Decimal)):
+        negative = '-' if value < 0 else ''
+        return '{}${:0.2f}'.format(negative, abs(value))
+
+    return value
+
+
+def format_time(value):
+    if value is None:
+        return ''
+
+    value = _clean_number(value)
+    if isinstance(value, (int, float, decimal.Decimal)):
+        value = int(value)
+        mins = value / 60
+        secs = value % 60
+        return '{:01d}:{:02d}'.format(mins, secs)
+
+    return value

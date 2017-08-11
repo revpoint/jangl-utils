@@ -1,7 +1,5 @@
-import logging
 from confluent.schemaregistry.serializers import Util
-
-logger = logging.getLogger(__name__)
+from jangl_utils import logger
 
 
 class Schema(object):

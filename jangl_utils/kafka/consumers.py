@@ -12,6 +12,7 @@ class KafkaWorker(BaseWorker):
     commit_on_complete = False
     async_commit = True
     poll_timeout = 0
+    auto_offset_reset = 'earliest'
     consumer = None
     last_message = None
 
@@ -32,7 +33,7 @@ class KafkaWorker(BaseWorker):
     def get_consumer_settings(self):
         initial = {
             'group.id': self.get_consumer_name(),
-            'default.topic.config': {'auto.offset.reset': 'latest'},
+            'default.topic.config': {'auto.offset.reset': self.auto_offset_reset},
             'enable.auto.commit': False,
             'bootstrap.servers': utils.get_broker_url(),
             'schema.registry.url': utils.get_schema_registry_url(),
@@ -88,12 +89,16 @@ class KafkaWorker(BaseWorker):
 
 
 class StartAtBeginningKafkaWorker(KafkaWorker):
+    auto_offset_reset = 'earliest'
+
     def setup(self):
         super(StartAtBeginningKafkaWorker, self).setup()
         self.reset_consumer_offsets(OFFSET_BEGINNING)
 
 
 class StartAtEndKafkaWorker(KafkaWorker):
+    auto_offset_reset = 'latest'
+
     def setup(self):
         super(StartAtEndKafkaWorker, self).setup()
         self.reset_consumer_offsets(OFFSET_END)

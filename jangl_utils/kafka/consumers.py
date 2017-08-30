@@ -70,7 +70,7 @@ class KafkaWorker(BaseWorker):
                 raise KafkaException(message.error())
 
         else:
-            self.consume_message(message)
+            self.consume_message(MessageValue(message))
 
             if self.commit_on_complete:
                 self.commit()
@@ -102,6 +102,21 @@ class StartAtEndKafkaWorker(KafkaWorker):
     def setup(self):
         super(StartAtEndKafkaWorker, self).setup()
         self.reset_consumer_offsets(OFFSET_END)
+
+
+class MessageValue(object):
+    def __init__(self, message):
+        self.message = message
+        self.value = message.value()
+
+    def __getattr__(self, item):
+        if hasattr(self.value, item):
+            return getattr(self.value, item)
+        return getattr(self.message, item)
+
+    def __getitem__(self, item):
+        if isinstance(self.value, (list, dict)):
+            return self.value[item]
 
 
 # For compatibility

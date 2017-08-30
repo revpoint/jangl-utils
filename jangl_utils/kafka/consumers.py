@@ -106,17 +106,18 @@ class StartAtEndKafkaWorker(KafkaWorker):
 
 class MessageValue(object):
     def __init__(self, message):
-        self.message = message
-        self.value = message.value()
+        self._message = message
+        self._value = message.value()
 
     def __getattr__(self, item):
-        if hasattr(self.value, item):
-            return getattr(self.value, item)
-        return getattr(self.message, item)
+        if item in ('error', 'key', 'offset', 'partition',
+                    'timestamp', 'topic', 'value'):
+            return getattr(self._message, item)
+        return getattr(self._value, item)
 
     def __getitem__(self, item):
-        if isinstance(self.value, (list, dict)):
-            return self.value[item]
+        if isinstance(self._value, (list, dict)):
+            return self._value[item]
 
 
 # For compatibility

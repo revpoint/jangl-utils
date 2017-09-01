@@ -5,7 +5,7 @@ class SuperuserAuthMiddleware(object):
     def process_request(self, request):
         request.user = auth.TEST_SUPERUSER_USER
         request.account = None
-        request.site = None
+        request.site = auth.SUPERUSER_SITE
         request.is_superuser = True
 
 

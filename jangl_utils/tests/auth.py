@@ -52,3 +52,4 @@ TEST_VENDOR_ACCOUNT = CurrentAccount(TEST_VENDOR_USER, 'vendor-1')
 
 
 TEST_SITE = Site({'id': 1, 'name': 'Test Site'})
+SUPERUSER_SITE = Site({'id': 0, 'name': 'Jangl Platform'})

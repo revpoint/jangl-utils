@@ -44,10 +44,11 @@ def log_cprofile(func=None, action='stats', head=20, sample_rate=None, sort='cum
                 return result
             finally:
                 # Sort stats and print to output
-                with StringIO.StringIO() as out_buffer:
-                    stats = pstats.Stats(profile, stream=out_buffer).sort_stats(*sort_args)
-                    getattr(stats, 'print_' + action)()
-                    output = out_buffer.getvalue()
+                out_buffer = StringIO.StringIO()
+                stats = pstats.Stats(profile, stream=out_buffer).sort_stats(*sort_args)
+                getattr(stats, 'print_' + action)()
+                output = out_buffer.getvalue()
+                out_buffer.close()
 
                 # If head, get top lines + 5 header lines
                 if head and head > 0:

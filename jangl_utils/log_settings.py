@@ -1,3 +1,4 @@
+import sys
 
 DEFAULT_FORMAT_STRING = '%(log_color)s%(levelname)-8s %(asctime)s%(reset)s | %(message)s'
 
@@ -19,6 +20,8 @@ def generate_colorlog_settings(project_name, verbose=False, use_color=False,
         return pkg_name, level
 
     packages = [(project_name, project_level)] + [extra_with_level(pkg) for pkg in extra_packages]
+    loggers = {name: {'handlers': ['console'], 'level': level} for name, level in packages}
+    loggers['output'] = {'handlers': ['output'], 'level': 'INFO'}
 
     return {
         'version': 1,
@@ -34,9 +37,12 @@ def generate_colorlog_settings(project_name, verbose=False, use_color=False,
                 'class': 'logging.StreamHandler',
                 'formatter': 'color' if use_color else '',
                 'level': project_level,
-            }
+            },
+            'output': {
+                'class': 'logging.StreamHandler',
+                'level': 'INFO',
+                'stream': sys.stdout,
+            },
         },
-        'loggers': {
-            name: {'handlers': ['console'], 'level': level} for name, level in packages
-        },
+        'loggers': loggers,
     }

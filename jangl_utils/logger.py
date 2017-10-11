@@ -2,7 +2,7 @@ import inspect
 import logging
 
 __all__ = ['debug', 'info', 'warning', 'warn', 'error',
-           'exception', 'critical', 'fatal', 'log']
+           'exception', 'critical', 'fatal', 'log', 'output']
 
 
 def _log(level, *args, **kwargs):
@@ -46,3 +46,8 @@ fatal = critical
 
 def log(level, *args, **kwargs):
     _log(level, *args, **kwargs)
+
+
+def output(*args, **kwargs):
+    logger = logging.getLogger('output')
+    logger.info(*args, **kwargs)

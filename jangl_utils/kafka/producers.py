@@ -228,7 +228,7 @@ class Producer(object):
             self.producer.poll(self.poll_wait)
             self._produce(value, key, **kwargs)
 
-    def _flush(self):
+    def _flush(self, *args):
         self.producer.flush()
 
 

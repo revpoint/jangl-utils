@@ -17,7 +17,7 @@ except ImportError:
 class HealthCheckMiddleware(object):
     def process_request(self, request):
         if request.path_info == '/_hc':
-            if uwsgi:
+            if uwsgi and hasattr(uwsgi, 'set_logvar'):
                 uwsgi.set_logvar('cid', 'null')
             return HttpResponse(content_type='text/plain')
 
@@ -51,7 +51,7 @@ class CorrelationIDMiddleware(object):
         else:
             request.cid = get_unique_id()
             request.propagate_response = False
-        if uwsgi:
+        if uwsgi and hasattr(uwsgi, 'set_logvar'):
             uwsgi.set_logvar('cid', str(request.cid))
 
     def process_response(self, request, response):

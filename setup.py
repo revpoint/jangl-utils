@@ -1,4 +1,7 @@
+import platform
 from setuptools import setup, find_packages
+
+IS_PYPY = platform.python_implementation() == 'PyPy'
 
 
 INSTALL_REQUIREMENTS = [
@@ -14,13 +17,21 @@ INSTALL_REQUIREMENTS = [
     'pytz',
 ]
 
-KAFKA_REQUIREMENTS = [
-    'rpm-confluent-schemaregistry',
-    'confluent-kafka[avro]',
-    'gipc',
-    'avro==1.8.2-jangl',
-    'fastavro>=0.14.7',
-]
+if IS_PYPY:
+    KAFKA_REQUIREMENTS = [
+        'rpm-confluent-schemaregistry',
+        'pykafka>=2.7.0',
+        'avro==1.8.2-jangl',
+        'fastavro>=0.14.7',
+    ]
+else:
+    KAFKA_REQUIREMENTS = [
+        'rpm-confluent-schemaregistry',
+        'confluent-kafka[avro]',
+        'gipc',
+        'avro==1.8.2-jangl',
+        'fastavro>=0.14.7',
+    ]
 
 DEV_REQUIREMENTS = [
     'bumpversion',

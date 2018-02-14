@@ -212,7 +212,7 @@ class Producer(object):
             raise ValueError('Invalid message format')
 
     def produce(self, value, key=None, timestamp=None):
-        timestamp = timestamp or tz_now()
+        timestamp = timestamp
         self.producer.produce(value, key, timestamp)
 
     def stop(self, *args):

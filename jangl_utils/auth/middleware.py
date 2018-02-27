@@ -38,6 +38,16 @@ def get_cached_superuser(request, use_cache=True):
 
 
 class AuthMiddleware(object):
+    def process_request(self, request):
+        if AUTH_MIDDLEWARE_ATTACH_USER:
+            request.user = SimpleLazyObject(lambda: get_cached_user(request))
+        if AUTH_MIDDLEWARE_ATTACH_ACCOUNT:
+            request.account = SimpleLazyObject(lambda: get_cached_account(request))
+        if AUTH_MIDDLEWARE_ATTACH_SITE:
+            request.site = SimpleLazyObject(lambda: get_cached_site(request))
+        if AUTH_MIDDLEWARE_ATTACH_SUPERUSER:
+            request.is_superuser = SimpleLazyObject(lambda: get_cached_superuser(request))
+
     def process_view(self, request, view_func, view_args, view_kwargs):
         use_cache = not getattr(view_func, 'no_auth_cache', False)
 

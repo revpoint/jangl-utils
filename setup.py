@@ -10,7 +10,7 @@ INSTALL_REQUIREMENTS = [
     'cachetools',
     'colorlog',
     'django-storages==1.6.3',
-    'djangorestframework',
+    'djangorestframework>=3.3.0,<3.4',
     'prettyconf',
     'requests',
     'simpleflake',

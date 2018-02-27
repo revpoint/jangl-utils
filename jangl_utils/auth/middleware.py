@@ -55,16 +55,15 @@ class AuthMiddleware(object):
             request.is_superuser = SimpleLazyObject(lambda: get_cached_superuser(request))
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        use_cache = not getattr(view_func, 'no_auth_cache', False)
-
-        if AUTH_MIDDLEWARE_ATTACH_USER:
-            request.user = replace_lazy_object(request.user, lambda: get_cached_user(request, use_cache))
-        if AUTH_MIDDLEWARE_ATTACH_ACCOUNT:
-            request.account = replace_lazy_object(request.account, lambda: get_cached_account(request))
-        if AUTH_MIDDLEWARE_ATTACH_SITE:
-            request.site = replace_lazy_object(request.site, lambda: get_cached_site(request, use_cache))
-        if AUTH_MIDDLEWARE_ATTACH_SUPERUSER:
-            request.is_superuser = replace_lazy_object(request.is_superuser, lambda: get_cached_superuser(request, use_cache))
+        if getattr(view_func, 'no_auth_cache', False):
+            if AUTH_MIDDLEWARE_ATTACH_USER:
+                request.user = SimpleLazyObject(lambda: get_cached_user(request, use_cache=False))
+            if AUTH_MIDDLEWARE_ATTACH_ACCOUNT:
+                request.account = SimpleLazyObject(lambda: get_cached_account(request))
+            if AUTH_MIDDLEWARE_ATTACH_SITE:
+                request.site = SimpleLazyObject(lambda: get_cached_site(request, use_cache=False))
+            if AUTH_MIDDLEWARE_ATTACH_SUPERUSER:
+                request.is_superuser = SimpleLazyObject(lambda: get_cached_superuser(request, use_cache=False))
 
     def process_response(self, request, response):
         if hasattr(request, '_set_current_account_cookie'):

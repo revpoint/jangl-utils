@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.utils.functional import SimpleLazyObject
+from django.utils.functional import SimpleLazyObject, empty
 from requests import HTTPError
 from jangl_utils.auth import get_user_from_request, get_account_from_request, set_current_account_cookie, \
     get_site_from_request, logout, get_superuser_from_request
@@ -37,6 +37,12 @@ def get_cached_superuser(request, use_cache=True):
     return request._cached_superuser
 
 
+def replace_lazy_object(original, func):
+    if original._wrapped is empty:
+        return SimpleLazyObject(func)
+    return original
+
+
 class AuthMiddleware(object):
     def process_request(self, request):
         if AUTH_MIDDLEWARE_ATTACH_USER:
@@ -52,13 +58,13 @@ class AuthMiddleware(object):
         use_cache = not getattr(view_func, 'no_auth_cache', False)
 
         if AUTH_MIDDLEWARE_ATTACH_USER:
-            request.user = SimpleLazyObject(lambda: get_cached_user(request, use_cache))
+            request.user = replace_lazy_object(request.user, lambda: get_cached_user(request, use_cache))
         if AUTH_MIDDLEWARE_ATTACH_ACCOUNT:
-            request.account = SimpleLazyObject(lambda: get_cached_account(request))
+            request.account = replace_lazy_object(request.account, lambda: get_cached_account(request))
         if AUTH_MIDDLEWARE_ATTACH_SITE:
-            request.site = SimpleLazyObject(lambda: get_cached_site(request, use_cache))
+            request.site = replace_lazy_object(request.site, lambda: get_cached_site(request, use_cache))
         if AUTH_MIDDLEWARE_ATTACH_SUPERUSER:
-            request.is_superuser = SimpleLazyObject(lambda: get_cached_superuser(request, use_cache))
+            request.is_superuser = replace_lazy_object(request.is_superuser, lambda: get_cached_superuser(request, use_cache))
 
     def process_response(self, request, response):
         if hasattr(request, '_set_current_account_cookie'):

@@ -3,6 +3,8 @@ import types
 from django.http import HttpResponse
 from django.utils import timezone
 import pytz as pytz
+from django.utils.functional import SimpleLazyObject
+
 from jangl_utils import settings
 from jangl_utils.auth import get_token_from_request
 from jangl_utils.backend_api import get_backend_api_session
@@ -87,7 +89,7 @@ class BackendAPIMiddleware(object):
 
 
 class TimezoneMiddleware(object):
-    def process_request(self, request):
+    def process_view(self, request, view_func, view_args, view_kwargs):
         try:
             tz = request.account.get('timezone', request.site.get('timezone'))
         except AttributeError:
@@ -100,10 +102,10 @@ class TimezoneMiddleware(object):
 
 class AccountNamesMiddleware(object):
 
-    def process_request(self, request):
-        request.buyer_names = self.get_buyer_names(request)
-        request.vendor_names = self.get_vendor_names(request)
-        request.affiliate_names = self.get_affiliate_names(request)
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        request.buyer_names = SimpleLazyObject(lambda: self.get_buyer_names(request))
+        request.vendor_names = SimpleLazyObject(lambda: self.get_vendor_names(request))
+        request.affiliate_names = SimpleLazyObject(lambda: self.get_affiliate_names(request))
 
         def get_buyer_name(self, buyer_id):
             if buyer_id in self.buyer_names:
@@ -121,7 +123,6 @@ class AccountNamesMiddleware(object):
         request.get_vendor_name = types.MethodType(get_vendor_name, request, request.__class__)
         request.get_affiliate_name = types.MethodType(get_affiliate_name, request, request.__class__)
 
-    # TODO: make these lazy
     def get_buyer_names(self, request):
         return self.get_names(request, 'buyers')
 

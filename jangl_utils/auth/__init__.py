@@ -12,10 +12,11 @@ AUTH_CURRENT_ACCOUNT_COOKIE = 'auth_account'
 
 # User
 
-def get_user(request, token):
+def get_user(request, token, use_cache=True):
     if token is not None:
         request.backend_api.update_session_headers(api_token=token)
-        user_request = request.backend_api.get(('accounts', 'user'), cache_seconds=3600, cache_refresh=30)
+        cache_args = dict(cache_seconds=3600, cache_refresh=30) if use_cache else {}
+        user_request = request.backend_api.get(('accounts', 'user'), **cache_args)
 
         if user_request.ok:
             return User(**user_request.json())
@@ -40,9 +41,9 @@ def get_token_from_request(request):
     return token
 
 
-def get_user_from_request(request):
+def get_user_from_request(request, use_cache=True):
     token = get_token_from_request(request)
-    return get_user(request, token)
+    return get_user(request, token, use_cache)
 
 
 class JWTJanglAuthentication(BaseAuthentication):
@@ -154,15 +155,17 @@ def set_current_account_cookie(response, current_account):
 
 # Site
 
-def get_site_from_request(request, site_id=None):
-    site_request = request.backend_api.get(('accounts', 'site'), site_id=site_id,
-                                           cache_seconds=3600, cache_refresh=60, cache_use_headers=['host', 'site_id'])
+def get_site_from_request(request, site_id=None, use_cache=True):
+    cache_args = dict(cache_seconds=3600, cache_refresh=60, cache_use_headers=['host', 'site_id']) if use_cache else {}
+
+    site_request = request.backend_api.get(('accounts', 'site'), site_id=site_id, **cache_args)
     site_request.raise_for_status()
     return Site(site_request.json(), image_fields=['logo', 'retina_logo', 'hero_image'])
 
 
 # Superuser
 
-def get_superuser_from_request(request):
-    superuser_request = request.backend_api.get(('accounts', 'is_superuser'), cache_seconds=3600, cache_refresh=600)
+def get_superuser_from_request(request, use_cache=True):
+    cache_args = dict(cache_seconds=3600, cache_refresh=600) if use_cache else {}
+    superuser_request = request.backend_api.get(('accounts', 'is_superuser'), **cache_args)
     return superuser_request.ok

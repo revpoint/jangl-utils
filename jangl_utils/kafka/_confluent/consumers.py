@@ -1,7 +1,9 @@
-from confluent_kafka import KafkaError, KafkaException, TopicPartition, OFFSET_BEGINNING, OFFSET_END
+from confluent_kafka import (KafkaError, KafkaException, TopicPartition,
+                             OFFSET_BEGINNING, OFFSET_END, TIMESTAMP_NOT_AVAILABLE)
 from confluent_kafka.avro import AvroConsumer
 from jangl_utils.kafka import utils
 from jangl_utils.kafka._confluent.old_consumer import KafkaConsumerWorker
+from jangl_utils.unix_time import unix_to_dt
 from jangl_utils.workers import BaseWorker
 
 __all__ = ['KafkaWorker', 'StartAtBeginningKafkaWorker', 'StartAtEndKafkaWorker', 'MessageValue', 'KafkaConsumerWorker']
@@ -41,6 +43,7 @@ class KafkaWorker(BaseWorker):
             'schema.registry.url': utils.get_schema_registry_url(),
             'session.timeout.ms': 10000,
             'heartbeat.interval.ms': 1000,
+            'api.version.request': True,
         }
         return utils.generate_client_settings(initial, self.consumer_settings)
 
@@ -120,6 +123,12 @@ class MessageValue(object):
     def __getitem__(self, item):
         if isinstance(self._value, (list, dict)):
             return self._value[item]
+
+    @property
+    def timestamp(self):
+        ts_type, ts = self._message.timestamp()
+        if ts_type != TIMESTAMP_NOT_AVAILABLE:
+            return unix_to_dt(ts)
 
 
 # For compatibility

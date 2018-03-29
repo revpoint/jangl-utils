@@ -4,6 +4,7 @@ from django.utils.functional import SimpleLazyObject, empty
 from requests import HTTPError
 from jangl_utils.auth import get_user_from_request, get_account_from_request, set_current_account_cookie, \
     get_site_from_request, logout, get_superuser_from_request
+from jangl_utils.etc.mixins import MiddlewareMixin
 
 EXPIRED_ERROR = "Signature has expired."
 
@@ -43,7 +44,7 @@ def replace_lazy_object(original, func):
     return original
 
 
-class AuthMiddleware(object):
+class AuthMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if AUTH_MIDDLEWARE_ATTACH_USER:
             request.user = SimpleLazyObject(lambda: get_cached_user(request))

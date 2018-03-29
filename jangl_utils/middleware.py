@@ -8,6 +8,7 @@ from django.utils.functional import SimpleLazyObject
 from jangl_utils import settings
 from jangl_utils.auth import get_token_from_request
 from jangl_utils.backend_api import get_backend_api_session
+from jangl_utils.etc.mixins import MiddlewareMixin
 from jangl_utils.unique_id import get_unique_id
 
 try:
@@ -16,7 +17,7 @@ except ImportError:
     uwsgi = None
 
 
-class HealthCheckMiddleware(object):
+class HealthCheckMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if request.path_info == '/_hc':
             if uwsgi and hasattr(uwsgi, 'set_logvar'):
@@ -24,7 +25,7 @@ class HealthCheckMiddleware(object):
             return HttpResponse(content_type='text/plain')
 
 
-class SetRemoteAddrFromForwardedFor(object):
+class SetRemoteAddrFromForwardedFor(MiddlewareMixin):
     def process_request(self, request):
         try:
             real_ip = request.META['HTTP_X_FORWARDED_FOR']
@@ -41,7 +42,7 @@ def get_correlation_id(request):
     return request.META.get('HTTP_' + settings.CID_HEADER_NAME.replace('-', '_'))
 
 
-class CorrelationIDMiddleware(object):
+class CorrelationIDMiddleware(MiddlewareMixin):
     def process_request(self, request):
         # If this is a downstream request, use existing CID and return in response header
         cid = get_correlation_id(request)
@@ -62,7 +63,7 @@ class CorrelationIDMiddleware(object):
         return response
 
 
-class BackendAPIMiddleware(object):
+class BackendAPIMiddleware(MiddlewareMixin):
     def process_request(self, request):
         assert hasattr(request, 'cid'), (
             'Make sure to insert "jangl_utils.middleware.CorrelationIDMiddleware"'
@@ -88,7 +89,7 @@ class BackendAPIMiddleware(object):
         return response
 
 
-class TimezoneMiddleware(object):
+class TimezoneMiddleware(MiddlewareMixin):
     def process_view(self, request, view_func, view_args, view_kwargs):
         try:
             tz = request.account.get('timezone', request.site.get('timezone'))
@@ -100,7 +101,7 @@ class TimezoneMiddleware(object):
             timezone.deactivate()
 
 
-class AccountNamesMiddleware(object):
+class AccountNamesMiddleware(MiddlewareMixin):
 
     def process_view(self, request, view_func, view_args, view_kwargs):
         request.buyer_names = SimpleLazyObject(lambda: self.get_buyer_names(request))
@@ -119,9 +120,9 @@ class AccountNamesMiddleware(object):
             if affiliate_id in self.affiliate_names:
                 return self.affiliate_names[affiliate_id]['name']
 
-        request.get_buyer_name = types.MethodType(get_buyer_name, request, request.__class__)
-        request.get_vendor_name = types.MethodType(get_vendor_name, request, request.__class__)
-        request.get_affiliate_name = types.MethodType(get_affiliate_name, request, request.__class__)
+        request.get_buyer_name = types.MethodType(get_buyer_name, request)
+        request.get_vendor_name = types.MethodType(get_vendor_name, request)
+        request.get_affiliate_name = types.MethodType(get_affiliate_name, request)
 
     def get_buyer_names(self, request):
         return self.get_names(request, 'buyers')

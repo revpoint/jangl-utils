@@ -10,6 +10,10 @@ def dt_to_unix(dt):
     return dt
 
 
+def dt_to_unix_ms(dt):
+    return int(dt_to_unix(dt) * 1000)
+
+
 def unix_to_dt(dt):
     if isinstance(dt, (int, long, float)):
         try:

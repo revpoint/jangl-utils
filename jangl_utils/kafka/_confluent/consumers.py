@@ -3,7 +3,7 @@ from confluent_kafka import (KafkaError, KafkaException, TopicPartition,
 from confluent_kafka.avro import AvroConsumer
 from jangl_utils.kafka import utils
 from jangl_utils.kafka._confluent.old_consumer import KafkaConsumerWorker
-from jangl_utils.unix_time import unix_to_dt
+from jangl_utils.unix_time import unix_to_dt, dt_to_unix_ms
 from jangl_utils.workers import BaseWorker
 
 __all__ = ['KafkaWorker', 'StartAtBeginningKafkaWorker', 'StartAtEndKafkaWorker', 'MessageValue', 'KafkaConsumerWorker']
@@ -53,13 +53,27 @@ class KafkaWorker(BaseWorker):
             self.last_message = message
         return message
 
-    def reset_consumer_offsets(self, offset):
-        self.poll()
-        self.consumer.assign([TopicPartition(tp.topic, tp.partition, offset)
-                              for tp in self.consumer.assignment()])
+    def get_partitions(self):
+        partitions = self.consumer.assignment()
+        if not partitions:
+            self.poll()
+            partitions = self.consumer.assignment()
+        return partitions
 
     def get_current_offsets(self):
-        return self.consumer.position(self.consumer.assignment())
+        return self.consumer.position(self.get_partitions())
+
+    def reset_consumer_offsets(self, offset):
+        self.consumer.assign([TopicPartition(tp.topic, tp.partition, offset)
+                              for tp in self.get_partitions()])
+
+    def seek_to_timestamp(self, timestamp):
+        timestamp_ms = dt_to_unix_ms(timestamp)
+        partitions = self.get_partitions()
+        for tp in partitions:
+            tp.offset = timestamp_ms
+        partitions = self.consumer.offsets_for_times(partitions)
+        self.consumer.assign(partitions)
 
     def handle(self):
         message = self.poll()

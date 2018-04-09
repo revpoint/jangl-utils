@@ -15,6 +15,7 @@ INSTALL_REQUIREMENTS = [
     'requests',
     'simpleflake',
     'pytz',
+    'urllib3',
 ]
 
 if IS_PYPY:
@@ -27,7 +28,7 @@ if IS_PYPY:
 else:
     KAFKA_REQUIREMENTS = [
         'rpm-confluent-schemaregistry',
-        'confluent-kafka[avro]',
+        'confluent-kafka[avro]>=0.11.4',
         'gipc',
         'avro==1.8.2-jangl',
         'fastavro>=0.14.7',

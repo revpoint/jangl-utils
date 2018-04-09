@@ -11,7 +11,7 @@ from django.utils import six
 from json import dumps as to_json
 import requests
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3 import Retry
+from urllib3 import Retry
 from jangl_utils import logger, settings, VERSION
 from jangl_utils.etc.json import _datetime_decoder
 

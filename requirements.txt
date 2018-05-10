@@ -14,6 +14,7 @@ prettyconf==1.2.0
 pykafka>=2.7.0,<2.8
 pytz>=2015.4
 requests>=2.7.0
+requests_oauthlib>=0.8.0,<0.9
 rpm-confluent-schemaregistry==0.1.0
 simpleflake>=0.1.5
 urllib3

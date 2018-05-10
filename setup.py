@@ -13,6 +13,7 @@ INSTALL_REQUIREMENTS = [
     'djangorestframework>=3.3.0,<3.4',
     'prettyconf',
     'requests',
+    'requests_oauthlib>=0.8.0,<0.9',
     'simpleflake',
     'pytz',
     'urllib3',

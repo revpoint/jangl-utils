@@ -111,7 +111,11 @@ class BackendAPISession(requests.Session):
         if authorization:
             self.headers['Authorization'] = authorization
         elif api_token:
-            self.headers['Authorization'] = '{0} {1}'.format('JWT', api_token)
+            if isinstance(api_token, dict):
+                auth = '{0} {1}'.format('Bearer', api_token['access_token'])
+            else:
+                auth = '{0} {1}'.format('JWT', api_token)
+            self.headers['Authorization'] = auth
 
         if twilio_signature:
             self.headers['X-Twilio-Signature'] = twilio_signature

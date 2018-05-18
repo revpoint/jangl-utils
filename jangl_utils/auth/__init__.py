@@ -35,8 +35,11 @@ def get_token_from_request(request):
     auth = request.META.get('HTTP_AUTHORIZATION')
     if not token and auth:
         split_auth = auth.split(' ')
-        if split_auth[0] == 'JWT' and len(split_auth) == 2:
-            token = split_auth[1]
+        if len(split_auth) == 2:
+            if split_auth[0] == 'JWT':
+                token = split_auth[1]
+            if split_auth[0] == 'Bearer':
+                token = {'access_token': split_auth[1]}
 
     return token
 

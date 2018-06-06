@@ -2,7 +2,7 @@ from collections import namedtuple
 from jangl_utils.files import FieldFile
 
 USER_FIELDS = ('user_id', 'email', 'first_name', 'last_name',
-               'buyers', 'vendors', 'affiliates', 'staff')
+               'buyers', 'vendors', 'affiliates', 'staff', 'authy_user_id')
 
 
 def _get_by_id(list, id):

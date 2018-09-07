@@ -19,8 +19,8 @@ from jangl_utils.etc.json import _datetime_decoder
 BACKEND_USER_AGENT = 'JanglBackendAPI/{}'.format(VERSION)
 BACKEND_CONTENT_TYPE = 'application/json'
 
-MAX_ASYNC_POOLS = 100
-MAX_ASYNC_POOL_CONNECTIONS = 100
+MAX_ASYNC_POOLS = 25
+MAX_ASYNC_POOL_CONNECTIONS = 10
 MAX_RETRIES = Retry(3, backoff_factor=0.1)
 
 

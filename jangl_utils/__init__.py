@@ -3,7 +3,7 @@ import platform
 
 __all__ = ('VERSION', 'get_version')
 
-VERSION = '0.13.9'
+VERSION = '0.13.10'
 IS_PYPY = platform.python_implementation() == 'PyPy'
 
 

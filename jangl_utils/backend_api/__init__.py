@@ -13,8 +13,8 @@ __all__ = ['get_backend_api_session', 'get_service_url', 'BackendAPISession', 'C
 BACKEND_USER_AGENT = 'JanglBackendAPI/{}'.format(VERSION)
 BACKEND_CONTENT_TYPE = 'application/json'
 
-MAX_ASYNC_POOLS = 50
-MAX_ASYNC_POOL_CONNECTIONS = 30
+MAX_ASYNC_POOLS = 100
+MAX_ASYNC_POOL_CONNECTIONS = 100
 MAX_RETRIES = Retry(3, backoff_factor=0.25)
 
 

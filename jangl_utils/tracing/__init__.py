@@ -16,8 +16,6 @@ JAEGER_TRACER = None
 
 
 def init_jaeger_tracer():
-    if JAEGER_ENABLED is False:
-        return
     logger.info('Initializing Jaeger tracer')
     config = Config({
         'service_name': JAEGER_SERVICE_NAME,

@@ -35,15 +35,16 @@ def init_jaeger_tracer():
 
 
 def init_django_tracer():
-    if getattr(settings, 'OPENTRACING_TRACER', None) is None and JAEGER_TRACER:
+    if getattr(settings, 'OPENTRACING_TRACER', None) is None:
         settings.OPENTRACING_TRACER = DjangoTracer(JAEGER_TRACER)
-    return settings.OPENTRACING_TRACER
+    return getattr(settings, 'OPENTRACING_TRACER', None)
 
 
 def init_tracing():
-    init_jaeger_tracer()
-    init_django_tracer()
-    install_all_patches()
+    if JAEGER_ENABLED:
+        init_jaeger_tracer()
+        init_django_tracer()
+        install_all_patches()
 
 
 def init_tracing_postfork():
@@ -51,6 +52,7 @@ def init_tracing_postfork():
 
     @postfork
     def tracing_postfork():
-        init_jaeger_tracer()
-        install_all_patches()
+        if JAEGER_ENABLED:
+            init_jaeger_tracer()
+            install_all_patches()
     settings.OPENTRACING_TRACER = None

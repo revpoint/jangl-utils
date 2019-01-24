@@ -23,6 +23,13 @@ KAFKA_REQUIREMENTS = [
     'fastavro>=0.14.7',
 ]
 
+TRACING_REQUIREMENTS = [
+    'django-opentracing==0.1.20',
+    'jaeger-client==3.13.0',
+    'opentracing==1.3.0',
+    'opentracing_instrumentation==2.5.0-jangl',
+]
+
 DEV_REQUIREMENTS = [
     'bumpversion',
     'fabric',
@@ -38,6 +45,7 @@ setup(
     install_requires=INSTALL_REQUIREMENTS,
     extras_require={
         'kafka': KAFKA_REQUIREMENTS,
+        'tracing': TRACING_REQUIREMENTS,
         'dev': DEV_REQUIREMENTS,
     },
     scripts=['bin/chronos-sync.rb'],

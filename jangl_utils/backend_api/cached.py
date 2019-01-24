@@ -29,7 +29,7 @@ class CachedBackendAPISession(BackendAPISession):
     def request(self, *args, **kwargs):
         is_cachable, cache_key, cache_seconds, cache_refresh = self.get_cache_vars(args, kwargs)
         if is_cachable:
-            response = self.cache.get(cache_key)
+            response = self.cache.get(cache_key, version=settings.BACKEND_API_CACHE_VERSION)
 
             # If cache miss, refresh cache
             if response is None:
@@ -40,7 +40,7 @@ class CachedBackendAPISession(BackendAPISession):
                 self._debug(response.text)
 
                 # If cache hit and passed refresh timer, refresh cache in background
-                cache_ttl = self.cache.ttl(cache_key) or 0
+                cache_ttl = self.cache.ttl(cache_key, version=settings.BACKEND_API_CACHE_VERSION) or 0
                 if cache_refresh is not None and cache_refresh < (cache_seconds - cache_ttl):
                     self._log('cache refresh', 'TTL:', cache_ttl)
                     gevent.spawn(self.refresh_cache, cache_key, cache_seconds, *args, **kwargs)
@@ -79,7 +79,7 @@ class CachedBackendAPISession(BackendAPISession):
     def refresh_cache(self, cache_key, cache_seconds, *args, **kwargs):
         response = super(CachedBackendAPISession, self).request(*args, **kwargs)
         if response.ok:
-            self.cache.set(cache_key, response, cache_seconds)
+            self.cache.set(cache_key, response, cache_seconds, version=settings.BACKEND_API_CACHE_VERSION)
         return response
 
     def get_cache_key(self, *args, **kwargs):

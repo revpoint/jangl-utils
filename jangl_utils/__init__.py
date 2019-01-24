@@ -4,7 +4,6 @@ import platform
 __all__ = ('VERSION', 'get_version')
 
 VERSION = '0.13.11'
-IS_PYPY = platform.python_implementation() == 'PyPy'
 
 
 def _get_git_revision(path):

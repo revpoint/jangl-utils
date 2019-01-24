@@ -32,5 +32,7 @@ USE_NEW_BACKEND_API = getattr(django_settings, 'USE_NEW_BACKEND_API',
                               config('USE_NEW_BACKEND_API', default=False, cast=casts.Boolean()))
 
 BACKEND_API_CACHE = getattr(django_settings, 'BACKEND_API_CACHE', 'default')
+BACKEND_API_CACHE_VERSION = getattr(django_settings, 'BACKEND_API_CACHE_VERSION',
+                                    config('BACKEND_API_CACHE_VERSION', default='1'))
 BACKEND_API_VERBOSE_LOG_LEVEL = getattr(django_settings, 'BACKEND_API_VERBOSE_LOG_LEVEL',
                                         config('BACKEND_API_VERBOSE_LOG_LEVEL', default='DEBUG'))

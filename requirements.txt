@@ -9,7 +9,6 @@ django-storages==1.6.3
 djangorestframework>=3.2.1
 fastavro>=0.14.7
 gevent
-gipc>=0.6.0
 prettyconf==1.2.0
 pykafka>=2.7.0,<2.8
 pytz>=2015.4

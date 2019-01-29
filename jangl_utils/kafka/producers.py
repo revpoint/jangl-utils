@@ -67,7 +67,7 @@ class Producer(object):
         producer_name = self.get_producer_name()
         logger.debug('using group id: ' + producer_name)
 
-        initial_settings = {
+        default_settings = {
             'api.version.request': True,
             'broker.version.fallback': '0.9.0',
             'client.id': 'JanglProducer',
@@ -87,7 +87,7 @@ class Producer(object):
             'batch.num.messages': 1000,
             'delivery.report.only.error': False,
         }
-        return generate_client_settings(initial_settings, self.producer_settings)
+        return generate_client_settings(default_settings, self.producer_settings)
 
     def get_topic_name(self):
         topic_name = self.kwargs.get('topic_name') or self.topic_name

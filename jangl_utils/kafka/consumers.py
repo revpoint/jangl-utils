@@ -35,7 +35,7 @@ class KafkaWorker(BaseWorker):
         return self.consumer_name or utils.generate_random_consumer_name()
 
     def get_consumer_settings(self):
-        initial = {
+        default_settings = {
             'group.id': self.get_consumer_name(),
             'default.topic.config': {'auto.offset.reset': self.auto_offset_reset},
             'enable.auto.commit': False,
@@ -45,7 +45,7 @@ class KafkaWorker(BaseWorker):
             'heartbeat.interval.ms': 1000,
             'api.version.request': True,
         }
-        return utils.generate_client_settings(initial, self.consumer_settings)
+        return utils.generate_client_settings(default_settings, self.consumer_settings)
 
     def poll(self):
         message = self.consumer.poll(timeout=self.poll_timeout)
@@ -89,7 +89,7 @@ class KafkaWorker(BaseWorker):
                 raise KafkaException(message.error())
 
         else:
-            self.consume_message(MessageValue(message))
+            self._consume(message)
 
             if self.commit_on_complete:
                 self.commit()
@@ -99,6 +99,9 @@ class KafkaWorker(BaseWorker):
     def commit(self):
         if not self.consumer_settings.get('enable.auto.commit'):
             self.consumer.commit(async=self.async_commit)
+
+    def _consume(self, message):
+        self.consume_message(MessageValue(message))
 
     def consume_message(self, message):
         pass
@@ -129,8 +132,8 @@ class MessageValue(object):
         self._value = message.value()
 
     def __getattr__(self, item):
-        if item in ('error', 'key', 'offset', 'partition',
-                    'timestamp', 'topic', 'value'):
+        if item in ('error', 'headers', 'key', 'offset',
+                    'partition', 'timestamp', 'topic', 'value'):
             return getattr(self._message, item)
         return getattr(self._value, item)
 

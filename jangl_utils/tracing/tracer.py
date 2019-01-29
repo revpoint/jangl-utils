@@ -60,7 +60,7 @@ class DjangoTracer(OldDjangoTracer):
         if response is not None:
             span.set_tag(tags.HTTP_STATUS_CODE, response.status_code)
 
-        span.finish()
-
         if hasattr(request, 'tracing_context_manager'):
             request.tracing_context_manager.__exit__()
+
+        span.finish()

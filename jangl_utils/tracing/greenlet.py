@@ -88,6 +88,11 @@ class GreenletPatcher(Patcher):
         gevent.spawn = _Greenlet.spawn
         gevent.spawn_later = _Greenlet.spawn_later
 
+        gevent.greenlet.joinall = _joinall
+        gevent.joinall = _joinall
+
+        gevent.backdoor.Greenlet = _Greenlet
+
         gevent.baseserver.Greenlet = _Greenlet
 
         gevent.pool.Greenlet = _Greenlet
@@ -96,6 +101,7 @@ class GreenletPatcher(Patcher):
 
         gevent.subprocess.Greenlet = _Greenlet
         gevent.subprocess.spawn = _Greenlet.spawn
+        gevent.subprocess.joinall = _joinall
 
         gevent.thread.Greenlet = _Greenlet
 

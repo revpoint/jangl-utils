@@ -59,6 +59,7 @@ class KafkaConsumerPatcher(Patcher):
                 carrier = {}
                 for (key, value) in message.headers():
                     carrier[key] = value
+                log.debug(carrier)
                 parent_ctx = opentracing.tracer.extract(
                     format=Format.TEXT_MAP, carrier=carrier
                 )
@@ -67,10 +68,12 @@ class KafkaConsumerPatcher(Patcher):
 
             if parent_ctx or getattr(consumer, 'start_new_traces', False):
                 tags_dict = {tags.MESSAGE_BUS_DESTINATION: consumer.get_topic_name()}
+                if message.key():
+                    tags_dict['key'] = str(message.key())
 
                 span = opentracing.tracer.start_span(
                     operation_name='kafka:consume',
-                    parent=parent_ctx,
+                    child_of=parent_ctx,
                     tags=tags_dict,
                 )
 

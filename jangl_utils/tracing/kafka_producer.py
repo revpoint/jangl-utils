@@ -64,6 +64,8 @@ class KafkaProducerPatcher(Patcher):
                 )
 
                 span.set_tag(tags.MESSAGE_BUS_DESTINATION, producer.get_topic_name())
+                if key is not None:
+                    span.set_tag('key', str(key))
 
                 headers = kwargs.pop('headers', {})
                 try:
@@ -73,14 +75,8 @@ class KafkaProducerPatcher(Patcher):
                 except opentracing.UnsupportedFormatException:
                     pass
 
-                original_delivery = kwargs.pop('on_delivery', lambda *a: None)
-
-                def on_delivery(err, msg):
-                    span.finish()
-                    original_delivery(err, msg)
-
-                _Producer_produce(producer, value, key=key, headers=headers,
-                                  on_delivery=on_delivery, **kwargs)
+                with span:
+                    _Producer_produce(producer, value, key=key, headers=headers, **kwargs)
             else:
                 _Producer_produce(producer, value, key=key, **kwargs)
 

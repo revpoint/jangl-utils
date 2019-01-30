@@ -132,7 +132,7 @@ class GreenletPatcher(Patcher):
             if parent_ctx:
                 operation = 'gevent:joinall'
                 tags_dict = {
-                    'greenlets': [g._run.__name__ for g in greenlets if g._run.__name__ != '_run'],
+                    'greenlets': self._get_greenlet_names(greenlets),
                     'timeout': timeout,
                     'raise_error': raise_error,
                     'count': count,
@@ -143,8 +143,7 @@ class GreenletPatcher(Patcher):
                     tags=tags_dict,
                 )
                 with span:
-                    with RequestContextManager(span=span):
-                        return _joinall(greenlets, timeout, raise_error, count)
+                    return _joinall(greenlets, timeout, raise_error, count)
             else:
                 return _joinall(greenlets, timeout, raise_error, count)
         return joinall_wrapper
@@ -155,7 +154,7 @@ class GreenletPatcher(Patcher):
             if parent_ctx:
                 operation = 'gevent:{}:join'.format(group.__class__.__name__)
                 tags_dict = {
-                    'greenlets': [g._run.__name__ for g in group.greenlets if g._run.__name__ != '_run'],
+                    'greenlets': self._get_greenlet_names(group.greenlets),
                     'timeout': timeout,
                     'raise_error': raise_error,
                 }
@@ -165,11 +164,13 @@ class GreenletPatcher(Patcher):
                     tags=tags_dict,
                 )
                 with span:
-                    with RequestContextManager(span=span):
-                        return _Group_join(group, timeout, raise_error)
+                    return _Group_join(group, timeout, raise_error)
             else:
                 return _Group_join(group, timeout, raise_error)
         return group_join_wrapper
+
+    def _get_greenlet_names(self, greenlets):
+        return [g._run.__name__ for g in greenlets if g._run.__name__ != '_run']
 
 
 patcher = GreenletPatcher()

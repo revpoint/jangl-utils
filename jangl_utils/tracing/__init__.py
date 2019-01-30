@@ -38,10 +38,12 @@ def init_django_tracer():
     return getattr(settings, 'OPENTRACING_TRACER', None)
 
 
-def init_kafka_patches():
+def install_custom_patches():
+    from jangl_utils.tracing import greenlet
     from jangl_utils.tracing import kafka_consumer
     from jangl_utils.tracing import kafka_producer
 
+    greenlet.install_patches()
     kafka_consumer.install_patches()
     kafka_producer.install_patches()
 
@@ -51,7 +53,7 @@ def init_tracing():
         init_jaeger_tracer()
         init_django_tracer()
         install_all_patches()
-        init_kafka_patches()
+        install_custom_patches()
 
 
 def init_tracing_postfork():
@@ -62,5 +64,5 @@ def init_tracing_postfork():
         if JAEGER_ENABLED:
             init_jaeger_tracer()
             install_all_patches()
-            init_kafka_patches()
+            install_custom_patches()
     settings.OPENTRACING_TRACER = None

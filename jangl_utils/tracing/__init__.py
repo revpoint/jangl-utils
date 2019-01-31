@@ -3,6 +3,7 @@ from jaeger_client import Config
 from opentracing_instrumentation.client_hooks import install_all_patches
 
 from jangl_utils import logger
+from jangl_utils.tracing.functions import func_span, traced_function
 from jangl_utils.tracing.tracer import DjangoTracer
 
 JAEGER_ENABLED = getattr(settings, 'JAEGER_ENABLED', False)

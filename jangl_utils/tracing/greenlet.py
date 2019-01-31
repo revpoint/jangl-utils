@@ -23,7 +23,8 @@ from __future__ import absolute_import
 import functools
 
 from future import standard_library
-from opentracing_instrumentation.request_context import RequestContextManager, get_current_span
+from opentracing.ext import tags
+from opentracing_instrumentation.request_context import get_current_span, span_in_context
 from opentracing_instrumentation.utils import start_child_span
 
 standard_library.install_aliases()
@@ -119,9 +120,16 @@ class GreenletPatcher(Patcher):
                         operation_name=operation,
                         parent=parent_ctx,
                     )
-                    with span:
-                        with RequestContextManager(span=span):
+                    with span, span_in_context(span):
+                        try:
                             return run(*args, **kwargs)
+                        except Exception as error:
+                            span.set_tag(tags.ERROR, True)
+                            span.log_kv({
+                                'event': tags.ERROR,
+                                'error.object': error,
+                            })
+                            raise
                 super(GreenletPatcher.TracedGreenlet, self).__init__(patched_run, *args, **kwargs)
             else:
                 super(GreenletPatcher.TracedGreenlet, self).__init__(run, *args, **kwargs)

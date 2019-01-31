@@ -22,7 +22,7 @@ from __future__ import absolute_import
 
 from future import standard_library
 from opentracing import Format
-from opentracing_instrumentation.request_context import RequestContextManager
+from opentracing_instrumentation.request_context import span_in_context
 
 standard_library.install_aliases()
 import logging
@@ -77,9 +77,16 @@ class KafkaConsumerPatcher(Patcher):
                     tags=tags_dict,
                 )
 
-                with span:
-                    with RequestContextManager(span=span):
+                with span, span_in_context(span):
+                    try:
                         _KafkaWorker_consume(consumer, message)
+                    except Exception as error:
+                        span.set_tag(tags.ERROR, True)
+                        span.log_kv({
+                            'event': tags.ERROR,
+                            'error.object': error,
+                        })
+                        raise
             else:
                 _KafkaWorker_consume(consumer, message)
         return consume_wrapper

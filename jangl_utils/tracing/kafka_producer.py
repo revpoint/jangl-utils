@@ -76,7 +76,15 @@ class KafkaProducerPatcher(Patcher):
                     pass
 
                 with span:
-                    _Producer_produce(producer, value, key=key, headers=headers, **kwargs)
+                    try:
+                        _Producer_produce(producer, value, key=key, headers=headers, **kwargs)
+                    except Exception as error:
+                        span.set_tag(tags.ERROR, True)
+                        span.log_kv({
+                            'event': tags.ERROR,
+                            'error.object': error,
+                        })
+                        raise
             else:
                 _Producer_produce(producer, value, key=key, **kwargs)
 

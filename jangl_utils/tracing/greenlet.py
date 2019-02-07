@@ -37,6 +37,7 @@ log = logging.getLogger(__name__)
 # Try to save the original entry points
 try:
     import gevent
+    import gevent._imap
     import gevent.backdoor
     import gevent.baseserver
     import gevent.pool
@@ -67,6 +68,8 @@ class GreenletPatcher(Patcher):
         gevent.greenlet.joinall = joinall
         gevent.joinall = joinall
 
+        gevent._imap.Greenlet = Greenlet
+
         gevent.backdoor.Greenlet = Greenlet
 
         gevent.baseserver.Greenlet = Greenlet
@@ -91,6 +94,8 @@ class GreenletPatcher(Patcher):
 
         gevent.greenlet.joinall = _joinall
         gevent.joinall = _joinall
+
+        gevent._imap.Greenlet = _Greenlet
 
         gevent.backdoor.Greenlet = _Greenlet
 

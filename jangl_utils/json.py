@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import datetime
-import json
+from json import dump, dumps, load, loads, JSONDecoder, JSONEncoder as BaseJSONEncoder
 
 import decimal
 import uuid
@@ -43,7 +43,7 @@ def decode_json_response_hook(response, *args, **kwargs):
     return response
 
 
-class JSONEncoder(json.JSONEncoder):
+class JSONEncoder(BaseJSONEncoder):
     """
     JSONEncoder subclass that knows how to encode date/time, decimal types and UUIDs.
     """
@@ -80,4 +80,4 @@ class JSONEncoder(json.JSONEncoder):
 
 def to_json(data, **kwargs):
     kwargs.setdefault('cls', JSONEncoder)
-    return json.dumps(data, **kwargs)
+    return dumps(data, **kwargs)

@@ -15,6 +15,8 @@ CID_HEADER_NAME = getattr(django_settings, 'CID_HEADER_NAME', config('CID_HEADER
 SITE_ID_HEADER_NAME = getattr(django_settings, 'SITE_ID_HEADER_NAME',
                               config('SITE_ID_HEADER_NAME', default='X-Site-ID'))
 
+SERVICES_URL_TEMPLATE = getattr(django_settings, 'SERVICES_URL_TEMPLATE',
+                                config('SERVICES_URL_TEMPLATE', default='http://{HOST}:{PORT}/{SERVICE}'))
 SERVICES_BACKEND_HOST = getattr(django_settings, 'SERVICES_BACKEND_HOST',
                                 config('PRODUCTION_BACKEND_HOST', default=config('HOST', default='localhost')))
 SERVICES_BACKEND_PORT = getattr(django_settings, 'SERVICES_BACKEND_PORT',

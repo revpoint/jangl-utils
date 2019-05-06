@@ -1,11 +1,21 @@
+import os
 import urllib
 from jangl_utils import settings, VERSION
 
 
+def get_service_url_base(service):
+    explicit_url = 'JANGL_{}_URL'.format(service.upper())
+    if os.environ.get(explicit_url):
+        return os.environ[explicit_url]
+    return settings.SERVICES_URL_TEMPLATE.format(
+        HOST=settings.SERVICES_BACKEND_HOST,
+        PORT=settings.SERVICES_BACKEND_PORT,
+        SERVICE=service
+    )
+
+
 def get_service_url(service, *args, **kwargs):
-    service_url = 'http://{0}:{1}/{2}'.format(settings.SERVICES_BACKEND_HOST,
-                                              settings.SERVICES_BACKEND_PORT,
-                                              service)
+    service_url = get_service_url_base(service)
 
     trailing_slash = kwargs.get('trailing_slash', True) and '/' or ''
     query_string = kwargs.get('query_string')

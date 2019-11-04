@@ -28,12 +28,13 @@ class Producer(object):
     - producer_name: The group name used for monitoring the producer
     - producer_settings: A dict of kafka settings to overwrite the defaults
     - has_key: Whether or not the topic has a key
-    - async: Messages are queued if async is True, otherwise messages send immediately
+    - _async: Messages are queued if _async is True, otherwise messages send immediately
     - poll_wait: The amount of time to wait for a response if queue is full
 
     Methods:
     - send_message: Sends a single message to Kafka
         send_message(key, message)
+        
         send_message(message)
 
     - send_messages: Sends a batch of messages to Kafka
@@ -48,7 +49,7 @@ class Producer(object):
     producer_name = None
     producer_settings = {}
     has_key = False
-    async = True
+    _async = True
     poll_wait = 1
 
     def __init__(self, **kwargs):
@@ -153,16 +154,16 @@ class Producer(object):
         - self.send_message([message, message, ...], **kwargs)
 
         Accepts the following kwargs:
-        - async: If async is False, producer will send the batch of messages immediately
+        - _async: If _async is False, producer will send the batch of messages immediately
         - partition: The partition id to produce to
         - callback: Delivery callback with signature on_delivery(err,msg)
         """
-        async = kwargs.pop('async', self.async)
+        _async = kwargs.pop('_async', self._async)
         try:
             for message in messages:
-                self.send_message(message, async=True, **kwargs)
+                self.send_message(message, _async=True, **kwargs)
         finally:
-            if not async:
+            if not _async:
                 self._flush()
 
     def send_message(self, *args, **kwargs):
@@ -177,11 +178,11 @@ class Producer(object):
         - self.send_message(message, **kwargs)
 
         Accepts the following kwargs:
-        - async: If async is False, producer will send message immediately
+        - _async: If _async is False, producer will send message immediately
         - partition: The partition id to produce to
         - callback: Delivery callback with signature on_delivery(err,msg)
         """
-        async = kwargs.pop('async', self.async)
+        _async = kwargs.pop('_async', self._async)
 
         if self.has_key:
             if len(args) == 0:
@@ -219,7 +220,7 @@ class Producer(object):
         else:
             raise ValueError('Invalid message format')
 
-        if not async:
+        if not _async:
             self._flush()
 
     def _produce(self, value, key=None, **kwargs):

@@ -98,7 +98,7 @@ class KafkaWorker(BaseWorker):
 
     def commit(self):
         if not self.consumer_settings.get('enable.auto.commit'):
-            self.consumer.commit(async=self.async_commit)
+            self.consumer.commit(asynchronous=self.async_commit)
 
     def _consume(self, message):
         self.consume_message(MessageValue(message))

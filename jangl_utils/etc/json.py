@@ -1,4 +1,6 @@
 import datetime
+
+import six
 from django.conf import settings
 from django.utils import timezone
 
@@ -11,7 +13,7 @@ def make_aware_local(dt):
 
 
 def _datetime_decoder(dict_):
-    for key, value in dict_.iteritems():
+    for key, value in six.iteritems(dict_):
         # The built-in `json` library will `unicode` strings, except for empty
         # strings which are of type `str`. `jsondate` patches this for
         # consistency so that `unicode` is always returned.

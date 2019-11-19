@@ -7,6 +7,8 @@ import decimal
 import uuid
 from types import MethodType
 
+import six
+
 from jangl_utils import timezone
 
 DATE_FMT = '%Y-%m-%d'
@@ -14,7 +16,7 @@ ISO8601_FMT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 
 def datetime_decoder(dict_):
-    for key, value in dict_.iteritems():
+    for key, value in six.iteritems(dict_):
         if value == '':
             dict_[key] = u''
             continue

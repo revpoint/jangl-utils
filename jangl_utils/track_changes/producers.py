@@ -2,6 +2,8 @@ from datetime import datetime
 from decimal import Decimal
 from time import mktime
 
+import six
+
 from jangl_utils.kafka import register_producer, Producer
 from jangl_utils.timezone import now as tz_now
 
@@ -62,7 +64,7 @@ class TrackChangesProducer(Producer):
     def get_changes(self, instance):
         changes = instance.get_tracked_changes()
         for field in changes:
-            changes[field] = dict([(k, clean_value(v)) for (k, v) in changes[field].iteritems()])
+            changes[field] = dict([(k, clean_value(v)) for (k, v) in six.iteritems(changes[field])])
         return changes
 
 

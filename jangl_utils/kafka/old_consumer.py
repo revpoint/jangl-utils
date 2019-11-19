@@ -102,7 +102,7 @@ class KafkaConsumerWorker(BaseWorker):
     def on_revoke(self, consumer, partitions):
         logger.debug('partitions revoked: {}'.format(partitions))
         try:
-            consumer.commit(async=False)
+            consumer.commit(asynchronous=False)
         except KafkaException:
             pass
         consumer.unassign()
@@ -164,7 +164,7 @@ class KafkaConsumerWorker(BaseWorker):
 
     def commit(self):
         if not self.consumer_settings.get('enable.auto.commit'):
-            self.consumer.commit(async=self.async_commit)
+            self.consumer.commit(asynchronous=self.async_commit)
 
     def consume_message(self, message):
         pass

@@ -1,3 +1,5 @@
+import six
+
 from jangl_utils import logger
 from jangl_utils.backend_api import get_service_url
 from jangl_utils.kafka import settings
@@ -6,7 +8,7 @@ from jangl_utils.unique_id import get_unique_id
 
 def generate_client_settings(initial_settings, user_settings):
     settings = initial_settings.copy()
-    for key, val in user_settings.iteritems():
+    for key, val in six.iteritems(user_settings):
         if val is None:
             continue
         logger.debug('using kafka setting {}: {}'.format(key, val))

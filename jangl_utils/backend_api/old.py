@@ -218,7 +218,7 @@ class CachedBackendAPISession(BackendAPISession):
             'site_id': self.headers.get('X-Site-ID'),
         }
         headers.update(extra_headers)
-        return dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
+        return dict(((k, v) for k, v in six.iteritems(headers) if k in use_headers))
 
 
 def get_backend_api_session(cached=settings.ENABLE_BACKEND_API_CACHE, **kwargs):
@@ -241,8 +241,8 @@ def get_backend_api_session(cached=settings.ENABLE_BACKEND_API_CACHE, **kwargs):
 
 
 def make_hashable(value):
-    if hasattr(value, 'iteritems'):
-        return tuple(sorted([(k, make_hashable(v)) for k, v in value.iteritems()]))
+    if hasattr(value, 'iteritems') or hasattr(value, 'items'):
+        return tuple(sorted([(k, make_hashable(v)) for k, v in six.iteritems(value)]))
     if isinstance(value, (list, tuple)):
         return tuple([make_hashable(v) for v in value])
     return value

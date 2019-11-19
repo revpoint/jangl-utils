@@ -1,4 +1,5 @@
 # Forked from https://gist.github.com/dcramer/730765
+import six
 from django.db.models.signals import post_init, post_save
 from jangl_utils.kafka import get_producer
 
@@ -55,7 +56,7 @@ def track_model(*fields):
             changed = {}
             if self.__data is UNSAVED:
                 return changed
-            for k, v in self.__data.iteritems():
+            for k, v in six.iteritems(self.__data):
                 if v != getattr(self, k):
                     changed[k] = {'old': v, 'new': getattr(self, k)}
             return changed

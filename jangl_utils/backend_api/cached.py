@@ -1,6 +1,7 @@
 import gevent
 import hashlib
 
+import six
 from cachetools.keys import _HashedTuple
 from jangl_utils import settings
 from jangl_utils.backend_api.base import BackendAPISession
@@ -97,4 +98,4 @@ class CachedBackendAPISession(BackendAPISession):
             'site_id': self.headers.get('X-Site-ID'),
         }
         headers.update(extra_headers)
-        return dict(((k, v) for k, v in headers.iteritems() if k in use_headers))
+        return dict(((k, v) for k, v in six.iteritems(headers) if k in use_headers))

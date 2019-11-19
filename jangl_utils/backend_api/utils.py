@@ -1,5 +1,8 @@
 import os
 import urllib
+
+import six
+
 from jangl_utils import settings, VERSION
 
 
@@ -28,8 +31,8 @@ def get_service_url(service, *args, **kwargs):
 
 
 def make_hashable(value):
-    if hasattr(value, 'iteritems'):
-        return tuple(sorted([(k, make_hashable(v)) for k, v in value.iteritems()]))
+    if hasattr(value, 'iteritems') or hasattr(value, 'items'):
+        return tuple(sorted([(k, make_hashable(v)) for k, v in six.iteritems(value)]))
     if isinstance(value, (list, tuple)):
         return tuple([make_hashable(v) for v in value])
     return value

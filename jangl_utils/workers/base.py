@@ -67,7 +67,7 @@ class BaseWorker(object):
                 with sentry.capture_on_error(raise_error=False):
                     self.teardown()
 
-        except WorkerAttemptFailed, exc:
+        except WorkerAttemptFailed as exc:
             self.wait()
             exc.attempt_worker()
 

@@ -17,8 +17,8 @@ TEMPLATE_DISPLAY = 'bootstrap/_field_display.html'
 def render_non_field_errors(errors):
     if not errors:
         return ''
-    context = Context({'errors': errors})
-    return render_to_string(TEMPLATE_ERRORS, context_instance=context)
+    context = {'errors': errors}
+    return render_to_string(TEMPLATE_ERRORS, context)
 
 
 def render_field(bound_field, show_label, template):
@@ -41,10 +41,12 @@ def render_field(bound_field, show_label, template):
     else:
         input_type = 'input'
 
-    context = Context({'bound_field': bound_field,
-                       'input_type': input_type,
-                       'show_label': show_label})
-    return render_to_string(template, context_instance=context)
+    context = {
+        'bound_field': bound_field,
+        'input_type': input_type,
+        'show_label': show_label,
+    }
+    return render_to_string(template, context)
 
 
 def as_bootstrap(obj, show_label, template):

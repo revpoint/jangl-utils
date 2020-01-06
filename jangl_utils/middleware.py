@@ -73,6 +73,7 @@ class BackendAPIMiddleware(MiddlewareMixin):
 
         api_session = get_backend_api_session(cid=request.cid,
                                               site_id=request.META.get('HTTP_X_SITE_ID'),
+                                              account=request.META.get('HTTP_X_AUTH_ACCOUNT'),
                                               host=request.get_host(),
                                               api_token=get_token_from_request(request),
                                               twilio_signature=request.META.get('HTTP_X_TWILIO_SIGNATURE'),

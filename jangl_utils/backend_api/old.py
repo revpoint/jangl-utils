@@ -104,12 +104,13 @@ class BackendAPISession(requests.Session):
                                                           hooks, stream, verify, cert, json)
 
         self._log('response', response.status_code, response.url)
-        self._debug(response.text)
+        if not stream:
+            self._debug(response.text)
 
         return response
 
     def update_session_headers(self, cid=None, site_id=None, host=None, authorization=None,
-                               api_token=None, twilio_signature=None, cookies=None):
+                               api_token=None, account=None, twilio_signature=None, cookies=None):
         if cid:
             self.headers[settings.CID_HEADER_NAME] = str(cid)
 
@@ -126,6 +127,9 @@ class BackendAPISession(requests.Session):
             else:
                 auth = '{0} {1}'.format('JWT', api_token)
             self.headers['Authorization'] = auth
+
+        if account:
+            self.headers['X-Auth-Account'] = account
 
         if twilio_signature:
             self.headers['X-Twilio-Signature'] = twilio_signature

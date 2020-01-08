@@ -85,7 +85,7 @@ def as_display_form(obj, show_label=True):
 
 @register.simple_tag
 def render_widget(obj, **attrs):
-    return obj.as_widget(attrs=attrs)
+    return mark_safe(obj.as_widget(attrs=attrs))
 
 
 @register.filter

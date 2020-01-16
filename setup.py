@@ -32,6 +32,7 @@ TRACING_REQUIREMENTS = [
 DEV_REQUIREMENTS = [
     'bumpversion',
     'fabric',
+    'marathon==0.10.0',
     'pytest-django'
 ]
 

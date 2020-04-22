@@ -59,7 +59,7 @@ class Producer(object):
         self.topic_name = self.get_topic_name()
         self.key_schema = self.get_key_schema()
         self.value_schema = self.get_value_schema()
-        gevent.signal(signal.SIGTERM, self._flush)
+        gevent.signal_handler(signal.SIGTERM, self._flush)
 
     def get_producer_settings(self):
         broker_url = self.get_broker_url()

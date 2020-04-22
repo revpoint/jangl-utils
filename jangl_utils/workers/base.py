@@ -97,8 +97,8 @@ def setup_kill_signals():
     global _signals_already_setup
     if _signals_already_setup:
         return
-    gevent.signal(signal.SIGTERM, kill_all_workers)
-    gevent.signal(signal.SIGINT, kill_all_workers)
+    gevent.signal_handler(signal.SIGTERM, kill_all_workers)
+    gevent.signal_handler(signal.SIGINT, kill_all_workers)
     _signals_already_setup = True
 _signals_already_setup = False
 

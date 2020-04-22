@@ -17,7 +17,8 @@ INSTALL_REQUIREMENTS = [
 ]
 
 KAFKA_REQUIREMENTS = [
-    'confluent-kafka[avro]>=0.11.4',
+    'rpm-confluent-schemaregistry',
+    'confluent-kafka[avro]~=1.3',
     'avro==1.8.2-jangl',
     'fastavro>=0.14.7',
 ]

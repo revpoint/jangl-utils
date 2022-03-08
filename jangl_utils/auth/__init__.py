@@ -152,8 +152,7 @@ def set_current_account(request, current_account):
 
 def set_current_account_cookie(response, current_account):
     max_age = 365 * 24 * 60 * 60  # one year
-    response.set_cookie(AUTH_CURRENT_ACCOUNT_COOKIE, current_account,
-                        max_age=max_age, httponly=True)
+    response.set_cookie(AUTH_CURRENT_ACCOUNT_COOKIE, current_account, max_age=max_age)
 
 
 # Site

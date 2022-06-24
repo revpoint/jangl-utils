@@ -7,7 +7,7 @@ INSTALL_REQUIREMENTS = [
     'cachetools',
     'colorlog',
     'django-storages==1.6.3',
-    'djangorestframework>=3.3.0,<3.4',
+    'djangorestframework',
     'prettyconf',
     'requests',
     'requests_oauthlib>=0.8.0,<0.9',

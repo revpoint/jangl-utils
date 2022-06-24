@@ -22,7 +22,7 @@ class JSONCaptureField(serializers.CharField):
         return json.loads(value)
 
     def to_internal_value(self, data):
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             return data
         try:
             val = json.dumps(data)

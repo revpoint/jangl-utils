@@ -1,10 +1,10 @@
 from functools import partial
 from django.db import models, router, transaction
-from django.db.models.fields.related import ForeignRelatedObjectsDescriptor
+from django.db.models.fields.related_descriptors import ForwardManyToOneDescriptor
 from django.utils.functional import cached_property
 
 
-class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
+class DeleteAndCreateDescriptor(ForwardManyToOneDescriptor):
     def __set__(self, instance, value):
         if value is None:
             return
@@ -24,7 +24,7 @@ class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
                 [manager.create(**obj) for obj in value]
 
     def clean_value(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             value = [val.strip() for val in value.split(',') if val.strip()]
         ensure_dict = lambda v: v if isinstance(v, dict) else {self.data_field_name: v}
         return [ensure_dict(val) for val in value]

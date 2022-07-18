@@ -40,7 +40,7 @@ DEV_REQUIREMENTS = [
 
 setup(
     name='jangl-utils',
-    version='0.16.10',
+    version='0.16.11',
     packages=find_packages(),
     package_data={'jangl_utils': ['templates/bootstrap/*']},
     install_requires=INSTALL_REQUIREMENTS,

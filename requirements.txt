@@ -1,9 +1,9 @@
 -i https://rpm:5U9GQ18muJgJ@pypi.jangl.com/pypi/
-avro==1.8.2-jangl
+avro
 boto3>=1.4.4
 bumpversion>=0.5.3
 cachetools>=2.0.0
-confluent-kafka[avro]
+confluent-kafka[avro]<1.8
 Django>=1.8,<1.9
 django-opentracing==0.1.20
 django-storages==1.6.3
@@ -18,7 +18,7 @@ pykafka>=2.7.0,<2.8
 pytz>=2015.4
 requests>=2.7.0
 requests_oauthlib>=0.8.0,<0.9
-rpm-confluent-schemaregistry==0.1.0
+rpm-confluent-schemaregistry==0.1.1
 sentry-sdk
 simpleflake>=0.1.5
 urllib3

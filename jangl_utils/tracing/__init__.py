@@ -20,6 +20,7 @@ def init_jaeger_tracer():
     logger.info('Initializing Jaeger tracer')
     config = Config({
         'service_name': JAEGER_SERVICE_NAME,
+        'propagation': 'b3',
         'sampler': {
             'type': JAEGER_SAMPLING_TYPE,
             'param': JAEGER_SAMPLING_PARAM,

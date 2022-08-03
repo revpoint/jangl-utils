@@ -8,6 +8,7 @@ INSTALL_REQUIREMENTS = [
     'colorlog',
     'django-storages==1.6.3',
     'djangorestframework>=3.3.0,<3.4',
+    'dj-database-url<1.0',
     'prettyconf',
     'requests',
     'requests_oauthlib>=0.8.0,<0.9',
@@ -17,7 +18,7 @@ INSTALL_REQUIREMENTS = [
 ]
 
 KAFKA_REQUIREMENTS = [
-    'avro',
+    'avro==1.8.2-jangl',
     'confluent-kafka[avro]<1.8',
     'fastavro',
     'rpm-confluent-schemaregistry==0.1.1',

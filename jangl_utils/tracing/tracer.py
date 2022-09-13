@@ -28,7 +28,7 @@ class DjangoTracer(OldDjangoTracer):
             span = self._tracer.start_span(operation_name=operation_name)
 
         # add span to current spans
-        self._current_spans[request] = span
+        self._current_scopes[request] = span
 
         span.set_tag(tags.COMPONENT, 'django')
         span.set_tag(tags.SPAN_KIND, tags.SPAN_KIND_RPC_SERVER)
@@ -47,7 +47,7 @@ class DjangoTracer(OldDjangoTracer):
         return span
 
     def _finish_tracing(self, request, response=None, error=None):
-        span = self._current_spans.pop(request, None)
+        span = self._current_scopes.pop(request, None)
         if span is None:
             return
 

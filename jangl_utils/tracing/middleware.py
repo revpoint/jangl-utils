@@ -10,7 +10,7 @@ class JaegerOpenTracingMiddleware(OpenTracingMiddleware):
         self.get_response = get_response
 
     @property
-    def _tracer(self):
+    def _tracing(self):
         if self._django_tracer is None:
             if tracing.JAEGER_TRACER is None:
                 return
@@ -18,15 +18,15 @@ class JaegerOpenTracingMiddleware(OpenTracingMiddleware):
         return self._django_tracer
 
     def process_view(self, *args, **kwargs):
-        if self._tracer is None:
+        if self._tracing is None:
             return
         super(JaegerOpenTracingMiddleware, self).process_view(*args, **kwargs)
 
     def process_exception(self, request, exception):
-        if self._tracer:
-            self._tracer._finish_tracing(request, error=exception)
+        if self._tracing:
+            self._tracing._finish_tracing(request, error=exception)
 
     def process_response(self, request, response):
-        if self._tracer:
-            self._tracer._finish_tracing(request, response)
+        if self._tracing:
+            self._tracing._finish_tracing(request, response)
         return response

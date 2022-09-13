@@ -25,10 +25,10 @@ KAFKA_REQUIREMENTS = [
 ]
 
 TRACING_REQUIREMENTS = [
-    'django-opentracing==0.1.20',
-    'jaeger-client==3.13.0',
-    'opentracing==1.3.0',
-    'opentracing_instrumentation==2.5.0-jangl',
+    'django-opentracing==1.1.0',
+    'jaeger-client==4.4.0',
+    'opentracing==2.4.0',
+    'opentracing_instrumentation==3.3.1',
 ]
 
 DEV_REQUIREMENTS = [

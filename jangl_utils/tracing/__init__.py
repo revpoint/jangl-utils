@@ -16,11 +16,10 @@ JAEGER_LOGGING_ENABLED = getattr(settings, 'JAEGER_LOGGING_ENABLED', True)
 JAEGER_TRACER = None
 
 
-def init_jaeger_tracer():
+def init_jaeger_tracer(**kwargs):
     logger.info('Initializing Jaeger tracer')
-    config = Config({
+    config = {
         'service_name': JAEGER_SERVICE_NAME,
-        'propagation': 'b3',
         'sampler': {
             'type': JAEGER_SAMPLING_TYPE,
             'param': JAEGER_SAMPLING_PARAM,
@@ -29,9 +28,12 @@ def init_jaeger_tracer():
             'reporting_host': JAEGER_AGENT_HOST,
         },
         'logging': JAEGER_LOGGING_ENABLED,
-    }, validate=True)
+    }
+    kwargs.setdefault('propagation', 'b3')
+    kwargs.setdefault('generate_128bit_trace_id', True)
+    config.update(kwargs)
     global JAEGER_TRACER
-    JAEGER_TRACER = config.initialize_tracer()
+    JAEGER_TRACER = Config(config, validate=True).initialize_tracer()
 
 
 def init_django_tracer():

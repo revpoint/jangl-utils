@@ -1,26 +1,27 @@
-from django_opentracing import OpenTracingMiddleware
+from django_opentracing import OpenTracingMiddleware as BaseOpenTracingMiddleware
 
 from jangl_utils import tracing
 
 
-class JaegerOpenTracingMiddleware(OpenTracingMiddleware):
-    _django_tracer = None
+class OpenTracingMiddleware(BaseOpenTracingMiddleware):
+    _django_tracing = None
 
     def __init__(self, get_response=None):
         self.get_response = get_response
 
     @property
     def _tracing(self):
-        if self._django_tracer is None:
-            if tracing.JAEGER_TRACER is None:
+        if self._django_tracing is None:
+            if tracing.JAEGER_TRACING is None:
                 return
-            self._django_tracer = tracing.init_django_tracer()
-        return self._django_tracer
+            self._init_tracing()
+            self._django_tracing = tracing.init_django_tracer()
+        return self._django_tracing
 
     def process_view(self, *args, **kwargs):
         if self._tracing is None:
             return
-        super(JaegerOpenTracingMiddleware, self).process_view(*args, **kwargs)
+        super(OpenTracingMiddleware, self).process_view(*args, **kwargs)
 
     def process_exception(self, request, exception):
         if self._tracing:

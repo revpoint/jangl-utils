@@ -61,7 +61,7 @@ class KafkaConsumerPatcher(Patcher):
                     carrier[key] = value
                 log.debug(carrier)
                 parent_ctx = opentracing.tracer.extract(
-                    format=Format.TEXT_MAP, carrier=carrier
+                    format=Format.HTTP_HEADERS, carrier=carrier
                 )
             except:
                 parent_ctx = None

@@ -70,7 +70,7 @@ class KafkaProducerPatcher(Patcher):
                 headers = kwargs.pop('headers', {})
                 try:
                     opentracing.tracer.inject(span_context=span.context,
-                                              format=Format.TEXT_MAP,
+                                              format=Format.HTTP_HEADERS,
                                               carrier=headers)
                 except opentracing.UnsupportedFormatException:
                     pass

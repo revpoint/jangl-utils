@@ -4,10 +4,10 @@ boto3>=1.4.4
 bumpversion>=0.5.3
 cachetools>=2.0.0
 confluent-kafka[avro]<1.8
-Django>=1.8,<1.9
+Django>=2,<3
 django-opentracing==1.1.0
 django-storages==1.6.3
-djangorestframework>=3.2.1
+djangorestframework>=3.9,<3.10
 fastavro>=0.14.7
 gevent
 jaeger-client==4.4.0

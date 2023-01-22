@@ -1,6 +1,6 @@
 import csv
 import codecs
-import cStringIO
+from django.utils import six
 
 
 class UTF8Recoder:
@@ -29,7 +29,7 @@ class UnicodeCSVReader:
 
     def next(self):
         row = self.reader.next()
-        return [unicode(s, "utf-8") for s in row]
+        return [six.text_type(s, "utf-8") for s in row]
 
     def __iter__(self):
         return self
@@ -43,13 +43,13 @@ class UnicodeCSVWriter:
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = cStringIO.StringIO()
+        self.queue = six.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()
 
     def writerow(self, row):
-        self.writer.writerow([unicode(s).encode("utf-8") if s else '' for s in row])
+        self.writer.writerow([six.text_type(s).encode("utf-8") if s else '' for s in row])
         # Fetch UTF-8 output from the queue ...
         data = self.queue.getvalue()
         data = data.decode("utf-8")

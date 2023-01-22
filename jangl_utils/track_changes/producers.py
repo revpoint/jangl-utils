@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from time import mktime
 
-import six
+from django.utils import six
 
 from jangl_utils.kafka import register_producer, Producer
 from jangl_utils.timezone import now as tz_now
@@ -46,7 +46,7 @@ class TrackChangesProducer(Producer):
             'buyer_id': kwargs.get('buyer_id', getattr(instance, 'buyer_id', None)),
             'vendor_id': kwargs.get('vendor_id', getattr(instance, 'vendor_id', None)),
             'site_id': kwargs.get('site_id', getattr(instance, 'site_id', None)),
-            'instance': kwargs.get('instance', unicode(instance)),
+            'instance': kwargs.get('instance', six.text_type(instance)),
             'message': message,
             'changes': self.get_changes(instance),
         }
@@ -73,8 +73,8 @@ def clean_value(value):
         value = str(value)
     if isinstance(value, datetime):
         value = get_timestamp_ms(value)
-    if value is not None and not isinstance(value, (basestring, int, long, float, bool)):
-        value = unicode(value)
+    if value is not None and not isinstance(value, (six.text_type, int, long, float, bool)):
+        value = six.text_type(value)
     return value
 
 

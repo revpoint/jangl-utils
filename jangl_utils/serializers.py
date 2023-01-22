@@ -1,5 +1,6 @@
 import json
 import re
+from django.utils import six
 from rest_framework import serializers
 
 phone_digits_re = re.compile(r'^(?:\+?1-?)?(\d{3})[-\.]?(\d{3})[-\.]?(\d{4})$')
@@ -22,7 +23,7 @@ class JSONCaptureField(serializers.CharField):
         return json.loads(value)
 
     def to_internal_value(self, data):
-        if isinstance(data, basestring):
+        if isinstance(data, six.string_types):
             return data
         try:
             val = json.dumps(data)

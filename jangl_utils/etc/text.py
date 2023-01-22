@@ -1,10 +1,11 @@
 from django.utils import six
 from django.utils.encoding import force_text
-from django.utils.functional import allow_lazy
 from django.utils.safestring import mark_safe, SafeText
 import decimal
 import unicodedata
 import re
+
+from jangl_utils._compat import allow_lazy
 
 
 def slugify(value):
@@ -21,7 +22,7 @@ slugify = allow_lazy(slugify, six.text_type, SafeText)
 
 
 def _clean_number(value):
-    if isinstance(value, (str, unicode)):
+    if isinstance(value, six.string_types):
         try:
             value = decimal.Decimal(value)
         except decimal.InvalidOperation:

@@ -7,7 +7,7 @@ INSTALL_REQUIREMENTS = [
     'cachetools',
     'colorlog',
     'django-storages==1.6.3',
-    'djangorestframework>=3.3.0,<3.4',
+    'djangorestframework',
     'dj-database-url<1.0',
     'prettyconf',
     'requests',

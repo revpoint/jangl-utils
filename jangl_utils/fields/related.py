@@ -1,7 +1,9 @@
 from functools import partial
 from django.db import models, router, transaction
-from django.db.models.fields.related import ForeignRelatedObjectsDescriptor
+from django.utils import six
 from django.utils.functional import cached_property
+
+from jangl_utils._compat import ForeignRelatedObjectsDescriptor
 
 
 class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
@@ -24,7 +26,7 @@ class DeleteAndCreateDescriptor(ForeignRelatedObjectsDescriptor):
                 [manager.create(**obj) for obj in value]
 
     def clean_value(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             value = [val.strip() for val in value.split(',') if val.strip()]
         ensure_dict = lambda v: v if isinstance(v, dict) else {self.data_field_name: v}
         return [ensure_dict(val) for val in value]

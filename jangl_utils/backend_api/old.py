@@ -63,7 +63,7 @@ def decode_json(r, *args, **kwargs):
         return self._json(**kwargs)
 
     r._json = r.json
-    r.json = MethodType(json, r, type(r))
+    r.json = MethodType(json, r)
     return r
 
 

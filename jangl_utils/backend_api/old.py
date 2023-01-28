@@ -211,7 +211,7 @@ class CachedBackendAPISession(BackendAPISession):
         args = make_hashable(args)
         kwargs = dict(make_hashable(kwargs))
         hash_key = '{}'.format(_HashedTuple(args + sum(sorted(kwargs.items()), (None,))))
-        hashed = hashlib.sha1(hash_key).hexdigest()
+        hashed = hashlib.sha1(hash_key.encode('utf8')).hexdigest()
         return 'backend_api:{}'.format(hashed)
 
     def get_cache_headers(self, use_headers, **extra_headers):

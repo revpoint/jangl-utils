@@ -11,17 +11,10 @@ from jangl_utils.backend_api import get_backend_api_session
 from jangl_utils.etc.mixins import MiddlewareMixin
 from jangl_utils.unique_id import get_unique_id
 
-try:
-    import uwsgi
-except ImportError:
-    uwsgi = None
-
 
 class HealthCheckMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if request.path_info == '/_hc':
-            if uwsgi and hasattr(uwsgi, 'set_logvar'):
-                uwsgi.set_logvar('cid', 'null')
             return HttpResponse(content_type='text/plain')
 
 
@@ -54,8 +47,6 @@ class CorrelationIDMiddleware(MiddlewareMixin):
         else:
             request.cid = get_unique_id()
             request.propagate_response = False
-        if uwsgi and hasattr(uwsgi, 'set_logvar'):
-            uwsgi.set_logvar('cid', str(request.cid))
 
     def process_response(self, request, response):
         if hasattr(request, 'propagate_response') and request.propagate_response:

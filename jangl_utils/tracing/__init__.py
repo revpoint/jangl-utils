@@ -70,12 +70,12 @@ def init_tracing_postfork():
 
 
 def init_tracing_postfork_uwsgi():
-    from uwsgidecorators import postfork
-
-    @postfork
-    def tracing_postfork():
-        if JAEGER_ENABLED:
-            init_jaeger_tracer()
-            install_all_patches()
-            install_custom_patches()
+    # from uwsgidecorators import postfork
+    #
+    # @postfork
+    # def tracing_postfork():
+    #     if JAEGER_ENABLED:
+    #         init_jaeger_tracer()
+    #         install_all_patches()
+    #         install_custom_patches()
     settings.OPENTRACING_TRACER = None

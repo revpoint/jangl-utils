@@ -36,9 +36,11 @@ def mkrange(parser, token):
     fnctl = tokens.pop(0)
 
     def error():
-        raise TemplateSyntaxError, "%s accepts the syntax: {%% %s [start,] " +\
-                "stop[, step] as context_name %%}, where 'start', 'stop' " +\
-                "and 'step' must all be integers." %(fnctl, fnctl)
+        raise TemplateSyntaxError(
+            "%s accepts the syntax: {%% %s [start,] " % (fnctl, fnctl) +
+            "stop[, step] as context_name %%}, where 'start', 'stop' " +
+            "and 'step' must all be integers."
+        )
 
     range_args = []
     while True:

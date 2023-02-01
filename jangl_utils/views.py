@@ -18,7 +18,7 @@ class MultipleSerializerMixin(object):
             serializer_class = self.detail_serializer_class
         elif self.action == 'create' and self.create_serializer_class:
             serializer_class = self.create_serializer_class
-        elif self.action == 'update' and self.update_serializer_class:
+        elif self.action in ('update', 'partial_update') and self.update_serializer_class:
             serializer_class = self.update_serializer_class
 
         kwargs['context'] = self.get_serializer_context()
@@ -51,7 +51,7 @@ class MultipleQuerysetMixin(object):
             if create_queryset:
                 return create_queryset
 
-        if self.action == 'update':
+        if self.action in ('update', 'partial_update'):
             update_queryset = self.get_update_queryset()
             if update_queryset:
                 return update_queryset
@@ -115,7 +115,7 @@ class MultiplePermissionsMixin(object):
             permission_classes = self.detail_permission_classes
         elif self.action == 'create' and self.create_permission_classes:
             permission_classes = self.create_permission_classes
-        elif self.action == 'update' and self.update_permission_classes:
+        elif self.action in ('update', 'partial_update') and self.update_permission_classes:
             permission_classes = self.update_permission_classes
         elif self.action == 'destroy' and self.destroy_permission_classes:
             permission_classes = self.destroy_permission_classes

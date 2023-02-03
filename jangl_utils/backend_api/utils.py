@@ -1,5 +1,8 @@
 import os
-import urllib
+try:
+    from urllib import parse as urllib
+except ImportError:
+    import urllib
 
 import six
 

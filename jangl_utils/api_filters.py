@@ -1,5 +1,7 @@
 import operator
 import re
+from functools import reduce
+
 import six
 from django.db import models
 from rest_framework.compat import distinct
@@ -56,7 +58,7 @@ class BackendAPISearchFilter(BaseFilterBackend):
         # First check all integer fields and return if matches
         int_queries = []
         for int_field in search_int_fields:
-            values = filter(lambda x: x.isnumeric(), search_terms)
+            values = list(filter(lambda x: x.isnumeric(), search_terms))
             if values:
                 int_queries += [
                     models.Q(**{'{}__in'.format(int_field): values})

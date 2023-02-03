@@ -5,10 +5,10 @@ USER_FIELDS = ('user_id', 'email', 'first_name', 'last_name',
                'buyers', 'vendors', 'affiliates', 'staff')
 
 
-def _get_by_id(list, id):
-        results = filter(lambda x: int(x['id']) == int(id), list)
-        if len(results):
-            return results[0]
+def _get_by_id(values, id):
+    results = list(filter(lambda x: int(x['id']) == int(id), values))
+    if len(results):
+        return results[0]
 
 
 class User(namedtuple('User', USER_FIELDS)):

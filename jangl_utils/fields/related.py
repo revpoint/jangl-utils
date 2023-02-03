@@ -57,6 +57,9 @@ else:
     from django.db.models.fields.related_descriptors import ReverseManyToOneDescriptor
 
     class DeleteAndCreateDescriptor(ReverseManyToOneDescriptor):
+        def __get__(self, instance, cls=None):
+            return super().__get__(instance, cls)
+
         def __set__(self, instance, value):
             if value is None:
                 return

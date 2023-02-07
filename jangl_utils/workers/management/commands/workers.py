@@ -9,6 +9,9 @@ from jangl_utils.workers.base import worker_registry, kill_all_workers
 class Command(BaseCommand):
     args = '<worker_name worker_name ...>'
 
+    def add_arguments(self, parser):
+        parser.add_argument('args', metavar='worker_name', nargs='+', help='Run specific workers')
+
     def handle(self, *worker_names, **options):
         workers = [w.spawn() for w in find_workers(worker_names)]
         if not workers:

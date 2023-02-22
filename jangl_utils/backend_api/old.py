@@ -102,9 +102,24 @@ class BackendAPISession(requests.Session):
         self._log('request', method.upper(), url)
         self._debug(data)
 
-        response = super(BackendAPISession, self).request(method, url, params, data, headers, cookies,
-                                                          files, auth, timeout, allow_redirects, proxies,
-                                                          hooks, stream, verify, cert, json)
+        response = super(BackendAPISession, self).request(
+            method,
+            url,
+            params=params,
+            data=data,
+            headers=headers,
+            cookies=cookies,
+            files=files,
+            auth=auth,
+            timeout=timeout,
+            allow_redirects=allow_redirects,
+            proxies=proxies,
+            hooks=hooks,
+            stream=stream,
+            verify=verify,
+            cert=cert,
+            json=json,
+        )
 
         self._log('response', response.status_code, response.url)
         if not stream:
